@@ -40,7 +40,7 @@ public class Edit extends JFrame implements ActionListener {
     }
 }
 
-class EditPanel extends JPanel implements MouseListener {
+class EditPanel extends JPanel implements MouseListener,KeyListener {
     private Edit mainFrame;
     private Image coolBack;
     private Image[] systemSprites,itemSprites,blockSprites,playerPlatSprites,enemyPlatSprites,playerTopDownSprites,enemyTopDownSprites;
@@ -66,6 +66,9 @@ class EditPanel extends JPanel implements MouseListener {
     private Image curImage;
     private boolean readyToPaste;
     private boolean containsAvatar,isAvatar;
+    private boolean changeAvatarPrompt;
+    private int avatarX,avatarY,newavatarX,newavatarY;
+    private boolean[] keys;
 
     public EditPanel(Edit e) {
         mainFrame = e;
@@ -144,6 +147,12 @@ class EditPanel extends JPanel implements MouseListener {
         gameRect = new Rectangle(500,150,1200,750);
         isAvatar = false;
         containsAvatar = false;
+        changeAvatarPrompt = false;
+        avatarX = -10;
+        avatarY = -10;
+        newavatarX = -10;
+        newavatarY = -10;
+        keys = new boolean[KeyEvent.KEY_LAST+1];
     }
     public void addNotify() {
         super.addNotify();
@@ -155,6 +164,23 @@ class EditPanel extends JPanel implements MouseListener {
         Point offset = getLocationOnScreen();
 
         mouse.translate(-offset.x, -offset.y);
+        if (changeAvatarPrompt) {
+            if (keys[KeyEvent.VK_Y]) {
+                changeAvatarPrompt = false;
+                Sprite.delete(avatarX,avatarY);
+                avatarX = newavatarX;
+                avatarY = newavatarY;
+                new Sprite(curSprite,avatarX,avatarY,curImage);
+                newavatarY = -10;
+                newavatarX = -10;
+            }
+            else if (keys[KeyEvent.VK_N]) {
+                changeAvatarPrompt = false;
+                newavatarX = -10;
+                newavatarY = -10;
+            }
+            return;
+        }
         if (avatarRect.contains(mouse)) curType = AVATAR;
         else if (enemyRect.contains(mouse)) curType = ENEMY;
         else if (blockRect.contains(mouse)) curType = BLOCK;
@@ -218,17 +244,34 @@ class EditPanel extends JPanel implements MouseListener {
         //System.out.println(readyToPaste);
 
         if (readyToPaste && gameRect.contains(mouse)) {
+            int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x;
+            int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y;
             if (!isAvatar || !containsAvatar) {
-                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x;
-                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y;
                 new Sprite(curSprite, sx, sy, curImage);
-                if (isAvatar) containsAvatar = true;
+                if (isAvatar) {
+                    containsAvatar = true;
+                    avatarX = sx;
+                    avatarY = sy;
+                }
+            }
+            else if (isAvatar && containsAvatar) {
+                changeAvatarPrompt = true;
+                newavatarX = sx;
+                newavatarY = sy;
             }
         }
     }
 
+    public void paintChangeAvatar(Graphics g) {
+        g.setColor(new Color(0,0,0,100));
+        g.fillRect(0,0,1920,1080);
+        g.setFont(new Font("SanFranciscoDisplay-Black.ttf",Font.BOLD,45));
+
+
+    }
+
+
     public void paintComponent(Graphics g) {
-        System.out.println(readyToPaste);
         g.drawImage(coolBack,0,0,null);
         g.setFont(font);
         g.setColor(BROWN);
@@ -338,7 +381,9 @@ class EditPanel extends JPanel implements MouseListener {
             Map.Entry<Integer, Sprite> pair = it.next();
             g.drawImage(pair.getValue().getImg(),pair.getKey()/200000,pair.getKey()%200000,null);
         }
-
+        if (changeAvatarPrompt) {
+            paintChangeAvatar(g);
+        }
     }
     // ------------ MouseListener ------------------------------------------
     public void mouseEntered(MouseEvent e) {}
@@ -348,6 +393,22 @@ class EditPanel extends JPanel implements MouseListener {
     public void mousePressed(MouseEvent e){
         update();
         System.out.printf("%d %d\n",e.getX(),e.getY());
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        keys[e.getKeyCode()] = true;
+        if (changeAvatarPrompt) update();
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        keys[e.getKeyCode()] = false;
     }
 }
 

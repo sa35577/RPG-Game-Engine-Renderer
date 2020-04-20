@@ -21,6 +21,10 @@ public class Sprite {
         spriteHashMap.put(new Integer(this.key),this);
 
     }
+    public static void delete(int x, int y) {
+        if (spriteHashMap.containsKey(x*200000+y)) spriteHashMap.remove(new Integer(x*200000+y));
+    }
+
     public int getX() {return this.locX;}
     public int getY() {return this.locY;}
     public Image getImg() {return this.img;}
