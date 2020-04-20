@@ -54,7 +54,7 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
     private Image[] maroonTexts = new Image[5];
     private Image[] blueTexts = new Image[5];
     private Font font;
-    public static final Color BROWN = new Color(210,105,30),TRANSPARENTRED = new Color(255,0,0,100);
+    public static final Color BROWN = new Color(210,105,30),TRANSPARENTRED = new Color(255,0,0,100),TRANSPARENTBLUE = new Color(0,0,255,100) ;
     private Point mouse;
     public static final int MOUSE = 0, TOOL = 1, DELETE = 2;
     public int curTool = MOUSE;
@@ -64,7 +64,7 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
     private Ellipse2D.Double[] toolEllipses;
     private String curSprite;
     private Image curImage;
-    private boolean readyToPaste;
+    private boolean readyToPaste,readyToDelete;
     private boolean containsAvatar,isAvatar;
     private boolean changeAvatarPrompt;
     private int avatarX,avatarY,newavatarX,newavatarY;
@@ -73,6 +73,7 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
     public EditPanel(Edit e) {
         mainFrame = e;
         addMouseListener(this);
+        addKeyListener(this);
         topDown = true;
         avatarRect = new Rectangle(40,250,60,30);
         enemyRect = new Rectangle(100,250,60,30);
@@ -152,6 +153,7 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
         avatarY = -10;
         newavatarX = -10;
         newavatarY = -10;
+        readyToDelete=false;
         keys = new boolean[KeyEvent.KEY_LAST+1];
     }
     public void addNotify() {
@@ -166,6 +168,7 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
         mouse.translate(-offset.x, -offset.y);
         if (changeAvatarPrompt) {
             if (keys[KeyEvent.VK_Y]) {
+                System.out.println(235345);
                 changeAvatarPrompt = false;
                 Sprite.delete(avatarX,avatarY);
                 avatarX = newavatarX;
@@ -173,11 +176,17 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
                 new Sprite(curSprite,avatarX,avatarY,curImage);
                 newavatarY = -10;
                 newavatarX = -10;
+                curSprite = null;
+                curImage = null;
+                isAvatar = false;
             }
             else if (keys[KeyEvent.VK_N]) {
                 changeAvatarPrompt = false;
                 newavatarX = -10;
                 newavatarY = -10;
+                curSprite = null;
+                curImage = null;
+                isAvatar = false;
             }
             return;
         }
@@ -194,70 +203,79 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
                 curImage = null;
                 isAvatar = false;
             }
-        }
-        if (curTool == MOUSE && spritesRect.contains(mouse)) {
-            int ind = (mouse.x-40)/75+4*(mouse.y-300)/75-1;
-            if (curType == AVATAR) {
-                if (playerTopDownSprites.length + playerPlatSprites.length > ind) {
-                    if (playerTopDownSprites.length <= ind) {
-                        ind -= playerTopDownSprites.length;
-                    }
-                    curSprite = playerTopDownStrings[ind];
-                    curImage = playerTopDownSprites[ind];
-                    isAvatar = true;
-                }
+            if (curTool == DELETE) {
+                readyToDelete = true;
             }
-            else if (curType == ENEMY) {
-                if (enemyTopDownSprites.length + enemyPlatSprites.length > ind) {
-                    if (enemyTopDownSprites.length <= ind) {
-                        ind -= enemyTopDownSprites.length;
-                    }
-                    curSprite = enemyTopDownStrings[ind];
-                    curImage = enemyTopDownSprites[ind];
-                    isAvatar = false;
-                }
-            }
-            else if (curType == BLOCK) {
-                if (blockSprites.length > ind) {
-                    curSprite = blockStrings[ind];
-                    curImage = blockSprites[ind];
-                    isAvatar = false;
-                }
-            }
-            else if (curType == ITEM) {
-                if (itemSprites.length > ind) {
-                    curSprite = itemStrings[ind];
-                    curImage = itemSprites[ind];
-                    isAvatar = false;
-                }
-            }
-            else if (curType == SYSTEM) {
-                if (systemSprites.length > ind) {
-                    curSprite = systemStrings[ind];
-                    curImage = systemSprites[ind];
-                    isAvatar = false;
-                }
+            else {
+                readyToDelete = false;
             }
         }
-        if ((spritesRect.contains(mouse) || gameRect.contains(mouse)) && curSprite != null && curTool == MOUSE) readyToPaste = true;
-        else readyToPaste = false;
-        //System.out.println(readyToPaste);
+        if (curTool == MOUSE) {
+            if (spritesRect.contains(mouse)) {
+                int ind = (mouse.x - 40) / 75 + 4 * (mouse.y - 300) / 75 - 1;
+                if (curType == AVATAR) {
+                    if (playerTopDownSprites.length + playerPlatSprites.length > ind) {
+                        if (playerTopDownSprites.length <= ind) {
+                            ind -= playerTopDownSprites.length;
+                        }
+                        curSprite = playerTopDownStrings[ind];
+                        curImage = playerTopDownSprites[ind];
+                        isAvatar = true;
+                    }
+                } else if (curType == ENEMY) {
+                    if (enemyTopDownSprites.length + enemyPlatSprites.length > ind) {
+                        if (enemyTopDownSprites.length <= ind) {
+                            ind -= enemyTopDownSprites.length;
+                        }
+                        curSprite = enemyTopDownStrings[ind];
+                        curImage = enemyTopDownSprites[ind];
+                        isAvatar = false;
+                    }
+                } else if (curType == BLOCK) {
+                    if (blockSprites.length > ind) {
+                        curSprite = blockStrings[ind];
+                        curImage = blockSprites[ind];
+                        isAvatar = false;
+                    }
+                } else if (curType == ITEM) {
+                    if (itemSprites.length > ind) {
+                        curSprite = itemStrings[ind];
+                        curImage = itemSprites[ind];
+                        isAvatar = false;
+                    }
+                } else if (curType == SYSTEM) {
+                    if (systemSprites.length > ind) {
+                        curSprite = systemStrings[ind];
+                        curImage = systemSprites[ind];
+                        isAvatar = false;
+                    }
+                }
+            }
+            if ((spritesRect.contains(mouse) || gameRect.contains(mouse)) && curSprite != null) readyToPaste = true;
+            else readyToPaste = false;
 
-        if (readyToPaste && gameRect.contains(mouse)) {
-            int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x;
-            int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y;
-            if (!isAvatar || !containsAvatar) {
-                new Sprite(curSprite, sx, sy, curImage);
-                if (isAvatar) {
-                    containsAvatar = true;
-                    avatarX = sx;
-                    avatarY = sy;
+            if (readyToPaste && gameRect.contains(mouse)) {
+                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x;
+                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y;
+                if (!isAvatar || !containsAvatar) {
+                    new Sprite(curSprite, sx, sy, curImage);
+                    if (isAvatar) {
+                        containsAvatar = true;
+                        avatarX = sx;
+                        avatarY = sy;
+                    }
+                } else  {
+                    changeAvatarPrompt = true;
+                    newavatarX = sx;
+                    newavatarY = sy;
                 }
             }
-            else if (isAvatar && containsAvatar) {
-                changeAvatarPrompt = true;
-                newavatarX = sx;
-                newavatarY = sy;
+        }
+        else if (curTool == DELETE) {
+            if (gameRect.contains(mouse)) {
+                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x;
+                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y;
+                Sprite.delete(sx,sy);
             }
         }
     }
@@ -266,12 +284,12 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
         g.setColor(new Color(0,0,0,100));
         g.fillRect(0,0,1920,1080);
         g.setFont(new Font("SanFranciscoDisplay-Black.ttf",Font.BOLD,45));
-
-
     }
 
 
     public void paintComponent(Graphics g) {
+        if (readyToDelete) mainFrame.setCursor(Cursor.CROSSHAIR_CURSOR);
+        else mainFrame.setCursor(Cursor.getDefaultCursor());
         g.drawImage(coolBack,0,0,null);
         g.setFont(font);
         g.setColor(BROWN);
@@ -365,13 +383,19 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
                 g.drawImage(toolImages[i],1750,300+125*i,null);
             }
         }
+        mouse =MouseInfo.getPointerInfo().getLocation();
+        Point offset = getLocationOnScreen();
+        mouse.translate(-offset.x, -offset.y);
         if (readyToPaste) {
-            mouse =MouseInfo.getPointerInfo().getLocation();
-            Point offset = getLocationOnScreen();
-
-            mouse.translate(-offset.x, -offset.y);
             g.drawImage(curImage,mouse.x-75,mouse.y,null);
             if (gameRect.contains(mouse)) {
+                g.setColor(TRANSPARENTBLUE);
+                g.fillRect(((mouse.x - gameRect.x) / 75) * 75 + gameRect.x, ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y, 75, 75);
+            }
+        }
+        if (readyToDelete) {
+            if (gameRect.contains(mouse)) {
+
                 g.setColor(TRANSPARENTRED);
                 g.fillRect(((mouse.x - gameRect.x) / 75) * 75 + gameRect.x, ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y, 75, 75);
             }
