@@ -69,6 +69,7 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
     private boolean changeAvatarPrompt;
     private int avatarX,avatarY,newavatarX,newavatarY;
     private boolean[] keys;
+    String s = "";
 
     public EditPanel(Edit e) {
         mainFrame = e;
@@ -163,10 +164,8 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
         mainFrame.start();
     }
     public void update() {
-        mouse =MouseInfo.getPointerInfo().getLocation();
-        Point offset = getLocationOnScreen();
-
-        mouse.translate(-offset.x, -offset.y);
+        mouse = getMousePosition();
+        if (mouse == null) mouse = new Point(0,0);
         if (changeAvatarPrompt) {
             if (keys[KeyEvent.VK_Y]) {
                 System.out.println(235345);
@@ -400,6 +399,7 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
             }
         }
         mouse = getMousePosition();
+        if (mouse == null) mouse = new Point(0,0);
         if (readyToPaste) {
             g.drawImage(curImage, mouse.x - 75, mouse.y, null);
         }
@@ -423,6 +423,13 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
         if (changeAvatarPrompt) {
             paintChangeAvatar(g);
         }
+        g.setFont(font);
+        g.setColor(Color.black);
+        while (g.getFontMetrics().stringWidth(s) <= 500) {
+            s += "a";
+            System.out.println(g.getFontMetrics().stringWidth(s));
+        }
+        g.drawString(s,100,100);
     }
     // ------------ MouseListener ------------------------------------------
     public void mouseEntered(MouseEvent e) {}
