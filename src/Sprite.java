@@ -16,13 +16,13 @@ public class Sprite {
         this.img = image;
 
         if (spriteHashMap.containsKey(this.key)) {
-            spriteHashMap.remove(new Integer(this.key));
+            spriteHashMap.remove(this.key);
         }
-        spriteHashMap.put(new Integer(this.key),this);
+        spriteHashMap.put(this.key,this);
 
     }
     public static void delete(int x, int y) {
-        if (spriteHashMap.containsKey(x*200000+y)) spriteHashMap.remove(new Integer(x*200000+y));
+        if (spriteHashMap.containsKey(x*200000+y)) spriteHashMap.remove(x*200000+y);
     }
 
     public int getX() {return this.locX;}
