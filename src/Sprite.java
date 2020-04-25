@@ -3,9 +3,9 @@ import java.util.*;
 
 public class Sprite {
     private static HashMap<Integer,Sprite> spriteHashMap = new HashMap<>();
-    private int locX,locY,key;
-    private Image img;
-    private String id;
+    protected int locX,locY,key;
+    protected Image img;
+    protected String id;
 
 
     public Sprite(String id, int x, int y, Image image) {
