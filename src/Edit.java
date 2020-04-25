@@ -27,6 +27,7 @@ public class Edit extends JFrame implements ActionListener {
         add(editor);
         setResizable(false);
         setVisible(true);
+        System.out.println(this.getWidth());
     }
 
     public static void main(String[] args) {
@@ -70,6 +71,9 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
     private int avatarX,avatarY,newavatarX,newavatarY;
     private boolean[] keys;
     String s = "";
+    private Image promptBack,buttonImage,buttonClickedImage;
+    private boolean overYes,overNo;
+    private Rectangle yesRect,noRect;
 
     public EditPanel(Edit e) {
         mainFrame = e;
@@ -157,6 +161,13 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
         readyToDelete=false;
         readyToModify = false;
         keys = new boolean[KeyEvent.KEY_LAST+1];
+        promptBack = new ImageIcon("promptBlock.png").getImage().getScaledInstance(1720,880, Image.SCALE_SMOOTH);
+        buttonImage = new ImageIcon("button.png").getImage().getScaledInstance(250,110, Image.SCALE_SMOOTH);
+        buttonClickedImage = new ImageIcon("buttonClicked.png").getImage().getScaledInstance(250,110, Image.SCALE_SMOOTH);
+        yesRect = new Rectangle(mainFrame.getWidth()/2-250,850,250,110);
+        noRect = new Rectangle(mainFrame.getWidth()/2+50,850,250,110);
+        overYes = false;
+        overNo = false;
     }
     public void addNotify() {
         super.addNotify();
@@ -167,7 +178,7 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
         mouse = getMousePosition();
         if (mouse == null) mouse = new Point(0,0);
         if (changeAvatarPrompt) {
-            if (keys[KeyEvent.VK_Y]) {
+            if (keys[KeyEvent.VK_Y] || yesRect.contains(mouse)) {
                 System.out.println(235345);
                 changeAvatarPrompt = false;
                 Sprite.delete(avatarX,avatarY);
@@ -180,13 +191,14 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
                 curImage = null;
                 isAvatar = false;
             }
-            else if (keys[KeyEvent.VK_N]) {
+            else if (keys[KeyEvent.VK_N] || noRect.contains(mouse)) {
                 changeAvatarPrompt = false;
                 newavatarX = -10;
                 newavatarY = -10;
                 curSprite = null;
                 curImage = null;
                 isAvatar = false;
+
             }
             return;
         }
@@ -296,9 +308,28 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
     }
 
     public void paintChangeAvatar(Graphics g) {
+        mouse = getMousePosition();
+        if (mouse == null) mouse = new Point(0,0);
         g.setColor(new Color(0,0,0,100));
         g.fillRect(0,0,1920,1080);
-        g.setFont(new Font("SanFranciscoDisplay-Black.ttf",Font.BOLD,45));
+        g.setFont(new Font("SanFranciscoDisplay-Black.ttf",Font.BOLD,60));
+        g.drawImage(promptBack,100,100,null);
+        g.drawString("WARNING",getTitlePosition("WARNING",g),175);
+        g.setFont(new Font("SanFranciscoDisplay-Black.ttf",Font.TRUETYPE_FONT,45));
+        g.setColor(BROWN);
+        g.drawString("You have more than one avatar on the board, which is not allowed.",getTitlePosition("You have more than one avatar on the board, which is not allowed.",g),250);
+        g.drawString("Press Y to use new avatar data, N to use old avatar data.",getTitlePosition("Press Y to use new avatar data, N to use old avatar data.",g),300);
+        g.setColor(Color.ORANGE);
+        g.fillRect(yesRect.x,yesRect.y,yesRect.width,yesRect.height);
+        g.fillRect(noRect.x,noRect.y,noRect.width,noRect.height);
+        g.drawImage(buttonImage,yesRect.x,yesRect.y,null);
+        g.drawImage(buttonImage,noRect.x,noRect.y,null);
+        if (yesRect.contains(mouse)) g.drawImage(buttonClickedImage,yesRect.x,yesRect.y,null);
+        else g.drawImage(buttonImage,yesRect.x,yesRect.y,null);
+        if (noRect.contains(mouse)) g.drawImage(buttonClickedImage,noRect.x,noRect.y,null);
+        else g.drawImage(buttonImage,noRect.x,noRect.y,null);
+        g.drawString("YES",ctrPosition(yesRect,"YES",g),yesRect.y+70);
+        g.drawString("NO",ctrPosition(noRect,"NO",g),noRect.y+70);
     }
 
 
@@ -456,5 +487,15 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
     public void keyReleased(KeyEvent e) {
         keys[e.getKeyCode()] = false;
     }
+    public int getTitlePosition(String str,Graphics g) {
+        return ctrPosition(new Rectangle(0,0,1920,1080),str,g);
+    }
+    public int ctrPosition(Rectangle bounds, String str, Graphics g) {
+        Graphics2D g2D = (Graphics2D)g;
+        int width = g.getFontMetrics().stringWidth(str);
+        int ctrX = bounds.x+(bounds.width-width)/2;
+        return ctrX;
+    }
+
 }
 
