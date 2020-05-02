@@ -1,10 +1,10 @@
 import java.awt.*;
 
-public class Avatar extends Sprite {
+public class Enemy extends Sprite {
     private String id;
     private int speed;
     private int health;
-    public Avatar(String id, int x, int y, Image image, int speed, int health) {
+    public Enemy(String id, int x, int y, Image image, int speed, int health) {
         super(id, x, y, image);
         this.id = id;
         this.speed = speed;

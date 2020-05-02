@@ -204,7 +204,8 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
                 avatarX = newavatarX;
                 avatarY = newavatarY;
                 new Sprite(curSprite,avatarX,avatarY,curImage);
-                avatar = new Avatar(curSprite);
+                avatar = new Avatar(curSprite,avatarX,avatarY,curImage,5,3);
+                avatar.init();
                 newavatarY = -10;
                 newavatarX = -10;
                 curSprite = null;
@@ -353,7 +354,25 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
                         containsAvatar = true;
                         avatarX = sx;
                         avatarY = sy;
-                        avatar = new Avatar(curSprite);
+                        //avatar = new Avatar(curSprite);
+                        avatar = new Avatar(curSprite,sx,sy,curImage,3,5);
+                        avatar.init();
+                    }
+                    else if (curType == ENEMY) {
+                        Enemy enemy = new Enemy(curSprite,sx,sy,curImage,3,5);
+                        enemy.init();
+                    }
+                    else if (curType == BLOCK) {
+                        Block block = new Block(curSprite,sx,sy,curImage);
+                        block.init();
+                    }
+                    else if (curType == ITEM) {
+                        Item item = new Item(curSprite,sx,sy,curImage);
+                        item.init();
+                    }
+                    else if (curType == SYSTEM) {
+                        System sys = new System(curSprite,sx,sy,curImage);
+                        sys.init();
                     }
                 } else  {
                     changeAvatarPrompt = true;
@@ -604,11 +623,6 @@ class EditPanel extends JPanel implements MouseListener,KeyListener {
         }
         g.setFont(font);
         g.setColor(Color.black);
-        while (g.getFontMetrics().stringWidth(s) <= 500) {
-            s += "a";
-            //System.out.println(g.getFontMetrics().stringWidth(s));
-        }
-        g.drawString(s,100,100);
     }
     // ------------ MouseListener ------------------------------------------
     public void mouseEntered(MouseEvent e) {}

@@ -1,12 +1,12 @@
 import java.awt.*;
 import java.util.*;
 
-public class Sprite {
+public class Sprite<T> {
     private static HashMap<Integer,Sprite> spriteHashMap = new HashMap<>();
     protected int locX,locY,key;
     protected Image img;
     protected String id;
-
+    protected T instance;
 
     public Sprite(String id, int x, int y, Image image) {
         this.id = id;
@@ -28,8 +28,12 @@ public class Sprite {
     public int getX() {return this.locX;}
     public int getY() {return this.locY;}
     public Image getImg() {return this.img;}
-    public String getId() {return this.id;}
     public int getKey() {return this.key;}
+    public String getId() {return this.id;}
     public static HashMap<Integer,Sprite> getSpriteHashMap() {return spriteHashMap; }
+    protected void setInstance(T instance) {
+        this.instance = instance;
+    }
+
 
 }
