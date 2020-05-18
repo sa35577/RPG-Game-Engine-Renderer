@@ -18,6 +18,7 @@ public class Edit extends JFrame implements ActionListener {
         add(editor);
         setResizable(false);
         setVisible(true);
+        setIconImage(new ImageIcon("richman.jpeg").getImage());
         //System.out.println(this.getWidth());
     }
 

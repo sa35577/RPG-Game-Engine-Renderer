@@ -42,13 +42,19 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
     private boolean overYes,overNo;
     private Rectangle yesRect,noRect;
     private Avatar avatar;
-    private boolean changeAvatarSettings, changeEnemySettings;
+    private Enemy curEnemy;
+    private Goal curGoal;
+    private boolean changeAvatarSettings, changeEnemySettings,changeGoalSettings;
     public static final int SPEED = 0, HEALTH = 1;
-    public static final String[] avatarSettings = new String[]{"Speed","Health"};
-    private Rectangle[] avatarSettingsRects;
+    public static final String[] avatarSettings = new String[]{"Speed","Health"}, goalSettings = new String[]{"Mask","Unlock"}, goalMasks = new String[]{"None","Cement","Cloud","Dirt","Glass","Gold","Grass"};
+    public static final int MASK = 0, UNLOCK = 1;
+    private Rectangle[] avatarSettingsRects,goalSettingsRects;
     private int curSetting;
     private Rectangle[] oneToTenBlocks,oneToFiveBlocks;
     private int unsavedSpeed,unsavedHealth;
+    private Image unsavedMask;
+    private int[] unsavedArrPoints;
+    private int dialogCtr;
 
     public EditPanel(Edit e) {
         mainFrame = e;
@@ -99,10 +105,10 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             enemyTopDownSprites[i] = new ImageIcon(String.format("Top-Down/%sR0.png",enemyTopDownStrings[i])).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
         }
 
-        blockStrings = new String[]{"cement","cloud","dirt","glass","goal","gold","grass","greenLock","hiddenGoal",
-                "hiddenGoal","message","redLock","spike","teleportIn"};
-        blockSprites = new Image[14];
-        for (int i = 0; i < 14; i++) {
+        blockStrings = new String[]{"cement","cloud","dirt","glass","gold","grass","goal","hiddenGoal",
+                "message","greenLock","redLock","spike","teleportIn"};
+        blockSprites = new Image[13];
+        for (int i = 0; i < 13; i++) {
             blockSprites[i] = new ImageIcon(String.format("Block/%s.png",blockStrings[i])).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
         }
 
@@ -144,7 +150,11 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         overYes = false;
         overNo = false;
         avatar = null;
+        curEnemy = null;
+        curGoal = null;
         changeAvatarSettings = false;
+        changeEnemySettings = false;
+        changeGoalSettings = false;
         curSetting = 0;
         oneToTenBlocks = new Rectangle[10];
         oneToFiveBlocks = new Rectangle[5];
@@ -165,13 +175,11 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         if (mouse == null) mouse = new Point(0,0);
         if (changeAvatarPrompt) {
             if (keys[KeyEvent.VK_Y] || yesRect.contains(mouse)) {
-
                 changeAvatarPrompt = false;
                 Sprite.delete(avatarX,avatarY);
                 avatarX = newavatarX;
                 avatarY = newavatarY;
-                new Sprite(curSprite,avatarX,avatarY,curImage);
-                avatar = new Avatar(curSprite,avatarX,avatarY,curImage,5,3);
+                avatar = new Avatar(curSprite,avatarX,avatarY,curImage);
                 avatar.init();
                 newavatarY = -10;
                 newavatarX = -10;
@@ -222,16 +230,66 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             }
 
             if (yesRect.contains(mouse)) {
-                avatar.setHealth(unsavedHealth);
-                avatar.setSpeed(unsavedSpeed);
+                if (changeAvatarSettings) {
+                    avatar.setHealth(unsavedHealth);
+                    avatar.setSpeed(unsavedSpeed);
+                }
+                else if (changeEnemySettings) {
+                    curEnemy.setHealth(unsavedHealth);
+                    curEnemy.setSpeed(unsavedSpeed);
+                }
                 changeAvatarSettings = false;
+                changeEnemySettings = false;
                 readyToModify = true;
             }
             else if (noRect.contains(mouse)) {
                 changeAvatarSettings = false;
+                changeEnemySettings = false;
+                curEnemy = null;
                 readyToModify = true;
             }
             return;
+        }
+        if (changeGoalSettings) {
+            for (int i = 0; i < goalSettingsRects.length; i++) {
+                if (goalSettingsRects[i].contains(mouse)) {
+                    if (i == 0) curSetting = MASK;
+                    else curSetting = UNLOCK;
+                }
+            }
+
+            if (curSetting == UNLOCK) {
+                for (int i = 0; i < unsavedArrPoints.length; i++) {
+                    if (Math.abs(mouse.y - (oneToFiveBlocks[i].y + oneToFiveBlocks[i].height / 2)) < 40) {
+                        if (Math.abs(mouse.x - (oneToFiveBlocks[i].x + oneToFiveBlocks[i].width / 2)) < 50) {
+                            unsavedArrPoints[i]++;
+                            unsavedArrPoints[i] %= 10;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (curSetting == MASK) {
+                for (int i = 0; i < goalMasks.length; i++) {
+                    System.out.println(goalMasks.length);
+                    if (new Rectangle(dialogCtr-200+100*(i%4),300+100*(i/4),75,75).contains(mouse)) {
+                        if (i == 0) unsavedMask = null;
+                        else unsavedMask = blockSprites[i-1];
+                    }
+                }
+            }
+            if (yesRect.contains(mouse)) {
+                curGoal.setMask(unsavedMask);
+                curGoal.setPointsToOpen(unsavedArrPoints[0]*10000+unsavedArrPoints[1]*1000+unsavedArrPoints[2]*100+unsavedArrPoints[3]*10+unsavedArrPoints[4]);
+                changeGoalSettings = false;
+                readyToModify = true;
+            }
+            else if (noRect.contains(mouse)) {
+                changeGoalSettings = false;
+                readyToModify = true;
+            }
+            return;
+
         }
         if (avatarRect.contains(mouse)) curType = AVATAR;
         else if (enemyRect.contains(mouse)) curType = ENEMY;
@@ -290,8 +348,10 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                         isAvatar = false;
                     }
                 } else if (curType == BLOCK) {
-                    if (blockSprites.length > ind) {
+                    //System.out.println(ind);
+                    if (ind < blockSprites.length) {
                         curSprite = blockStrings[ind];
+                        //System.out.println(curSprite);
                         curImage = blockSprites[ind];
                         isAvatar = false;
                     }
@@ -322,16 +382,17 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                         avatarX = sx;
                         avatarY = sy;
                         //avatar = new Avatar(curSprite);
-                        avatar = new Avatar(curSprite,sx,sy,curImage,3,5);
+                        avatar = new Avatar(curSprite,sx,sy,curImage);
                         avatar.init();
                     }
                     else if (curType == ENEMY) {
-                        Enemy enemy = new Enemy(curSprite,sx,sy,curImage,3,5);
-                        enemy.init();
+                        new Enemy(curSprite,sx,sy,curImage,3,5).init();
                     }
                     else if (curType == BLOCK) {
-                        Block block = new Block(curSprite,sx,sy,curImage);
-                        block.init();
+                        int idx = find(blockStrings,curSprite);
+                        if (idx < 6) new Block(curSprite, sx, sy, curImage).init();
+                        else if (idx < 7) new Goal(curSprite,sx,sy,curImage,null).init();
+                        else if (idx < 8) new Goal(curSprite,sx,sy,curImage,blockSprites[0]).init();
                     }
                     else if (curType == ITEM) {
                         Item item = new Item(curSprite,sx,sy,curImage);
@@ -360,12 +421,29 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             if (gameRect.contains(mouse)) {
                 int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x;
                 int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y;
-                if (Sprite.getSpriteHashMap().containsKey(sx*200000+sy)) {
-                    if (Sprite.getSpriteHashMap().get(sx*200000+sy).getId() == avatar.getId()) {
+                int spriteKey = sx*200000+sy;
+                if (Sprite.getSpriteHashMap().containsKey(spriteKey)) {
+                    Object inst = Sprite.getSpriteHashMap().get(spriteKey).instance;
+                    if (inst instanceof Enemy) {
+                        changeEnemySettings = true;
+                        curSetting = 0;
+                        unsavedHealth = ((Enemy)inst).getHealth();
+                        unsavedSpeed = ((Enemy)inst).getSpeed();
+                        curEnemy = (Enemy)inst;
+                    }
+                    else if (inst instanceof Avatar) {
                         changeAvatarSettings = true;
                         curSetting = 0;
                         unsavedHealth = avatar.getHealth();
                         unsavedSpeed = avatar.getSpeed();
+                    }
+                    else if (inst instanceof Goal) {
+                        curSetting = MASK;
+                        changeGoalSettings = true;
+                        unsavedMask = ((Goal) inst).getMask();
+                        int unsavedPointstoOpen = ((Goal) inst).getPointsToOpen();
+                        unsavedArrPoints = new int[]{unsavedPointstoOpen/10000,(unsavedPointstoOpen/1000)%10,(unsavedPointstoOpen/100)%10,(unsavedPointstoOpen/10)%10,(unsavedPointstoOpen)%10};
+                        curGoal = (Goal)inst;
                     }
                 }
             }
@@ -375,16 +453,12 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
     public void paintChangeAvatar(Graphics g) {
         mouse = getMousePosition();
         if (mouse == null) mouse = new Point(0,0);
-        g.setColor(new Color(0,0,0,100));
-        g.fillRect(0,0,1920,1080);
-        g.setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,60));
-        g.drawImage(promptBack,100,100,null);
         g.drawString("WARNING",getTitlePosition("WARNING",g),175);
         g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,45));
         g.setColor(BROWN);
         g.drawString("You have more than one avatar on the board, which is not allowed.",getTitlePosition("You have more than one avatar on the board, which is not allowed.",g),250);
         g.drawString("Press Y to use new avatar data, N to use old avatar data.",getTitlePosition("Press Y to use new avatar data, N to use old avatar data.",g),300);
-        g.setColor(Color.ORANGE);
+       /* g.setColor(Color.ORANGE);
         g.fillRect(yesRect.x,yesRect.y,yesRect.width,yesRect.height);
         g.fillRect(noRect.x,noRect.y,noRect.width,noRect.height);
         g.drawImage(buttonImage,yesRect.x,yesRect.y,null);
@@ -394,16 +468,12 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         if (noRect.contains(mouse)) g.drawImage(buttonClickedImage,noRect.x,noRect.y,null);
         else g.drawImage(buttonImage,noRect.x,noRect.y,null);
         g.drawString("YES",ctrPosition(yesRect,"YES",g),yesRect.y+70);
-        g.drawString("NO",ctrPosition(noRect,"NO",g),noRect.y+70);
+        g.drawString("NO",ctrPosition(noRect,"NO",g),noRect.y+70);*/
     }
 
     private void paintAvatarSettings(Graphics g) {
         mouse = getMousePosition();
         if (mouse == null) mouse = new Point(0,0);
-        g.setColor(new Color(0,0,0,100));
-        g.fillRect(0,0,1920,1080);
-        g.setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,60));
-        g.drawImage(promptBack,100,100,null);
         g.drawString("SETTINGS",getTitlePosition("SETTINGS",g),175);
         g.setColor(Color.BLUE);
         g.drawString(avatarSettings[curSetting],getTitlePosition(avatarSettings[curSetting],g),250);
@@ -436,7 +506,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             g.fillRect(oneToFiveBlocks[0].x,oneToFiveBlocks[0].y+oneToFiveBlocks[0].width/2-5,oneToFiveBlocks[4].x+oneToFiveBlocks[4].width-oneToFiveBlocks[0].x,10);
             g.setColor(Color.YELLOW);
             g.fillOval(oneToFiveBlocks[unsavedHealth-1].x,oneToFiveBlocks[unsavedHealth-1].y,oneToFiveBlocks[unsavedHealth-1].width,oneToFiveBlocks[unsavedHealth-1].height);
-        }
+        }/*
         g.setColor(Color.ORANGE);
         g.fillRect(yesRect.x,yesRect.y,yesRect.width,yesRect.height);
         g.fillRect(noRect.x,noRect.y,noRect.width,noRect.height);
@@ -447,13 +517,63 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         if (noRect.contains(mouse)) g.drawImage(buttonClickedImage,noRect.x,noRect.y,null);
         else g.drawImage(buttonImage,noRect.x,noRect.y,null);
         g.drawString("SAVE",ctrPosition(yesRect,"SAVE",g),yesRect.y+70);
-        g.drawString("CANCEL",ctrPosition(noRect,"CANCEL",g),noRect.y+70);
+        g.drawString("CANCEL",ctrPosition(noRect,"CANCEL",g),noRect.y+70);*/
+    }
+    public void paintGoalSettings(Graphics g) {
+        mouse = getMousePosition();
+        if (mouse == null) mouse = new Point(0,0);
+
+        g.drawString("SETTINGS",getTitlePosition("SETTINGS",g),175);
+        g.setColor(Color.BLUE);
+        g.drawString(goalSettings[curSetting],getTitlePosition(goalSettings[curSetting],g),250);
+        g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
+        for (int i = 0; i < goalSettingsRects.length; i++) {
+            if (curSetting == i || goalSettingsRects[i].contains(mouse))
+                g.setColor(Color.RED);
+            else
+                g.setColor(Color.ORANGE);
+            g.fillRect(goalSettingsRects[i].x,goalSettingsRects[i].y,goalSettingsRects[i].width,goalSettingsRects[i].height);
+            g.setColor(Color.blue);
+            g.drawString(goalSettings[i],goalSettingsRects[i].x+10,goalSettingsRects[i].y+30);
+        }
+
+        if (curSetting == UNLOCK) {
+            g.setColor(Color.black);
+            g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,60));
+            for (int i = 0; i < oneToFiveBlocks.length; i++) {
+                g.drawString(String.format("%d",unsavedArrPoints[i]),ctrPosition(oneToFiveBlocks[i],String.format("%d",i+1),g),oneToFiveBlocks[i].y+oneToFiveBlocks[i].width*3/2);
+            }
+        }
+        if (curSetting == MASK) {
+            g.setColor(Color.black);
+            g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,10));
+            //g.drawRect(getTitlePosition("",g)-200,300,75,75);
+            g.drawString("NONE",ctrPosition(new Rectangle(getTitlePosition("",g)-200,300,75,75),"NONE",g),300+40);
+            Graphics2D g2D = (Graphics2D)g;
+            for (int i = 1; i < goalMasks.length; i++) {
+                g.drawImage(blockSprites[i-1],dialogCtr-200+100*(i%4),300+100*(i/4),null);
+                if (unsavedMask == blockSprites[i-1]) {
+                    g2D.setStroke(new BasicStroke(5));
+                    g2D.drawRect(dialogCtr-200+100*(i%4),300+100*(i/4),75,75);
+                    g2D.setStroke(new BasicStroke(1));
+                }
+
+            }
+            if (unsavedMask == null) {
+                g2D.setStroke(new BasicStroke(5));
+                g2D.drawRect(getTitlePosition("",g)-200,300,75,75);
+                g2D.setStroke(new BasicStroke(1));
+            }
+
+        }
+
 
 
     }
 
 
     public void paintComponent(Graphics g) {
+
         if (avatarSettingsRects == null) {
             g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
             avatarSettingsRects = new Rectangle[2];
@@ -463,6 +583,15 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                 //System.out.println(g.getFontMetrics().stringWidth(avatarSettings[i]));
                 paintX += avatarSettingsRects[i].width + 10;
             }
+
+            goalSettingsRects = new Rectangle[2];
+            paintX = 250;
+            for (int i = 0; i < goalSettingsRects.length; i++) {
+                goalSettingsRects[i] = new Rectangle(paintX,250,g.getFontMetrics().stringWidth(goalSettings[i])+20,50);
+                paintX += goalSettingsRects[i].width + 10;
+            }
+
+            dialogCtr = getTitlePosition("",g);
         }
         //System.out.println(g.getFontMetrics().stringWidth(avatarSettings[0]));
         if (readyToDelete) mainFrame.setCursor(Cursor.CROSSHAIR_CURSOR);
@@ -581,15 +710,42 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         while (it.hasNext()) {
             Map.Entry<Integer, Sprite> pair = it.next();
             g.drawImage(pair.getValue().getImg(),pair.getKey()/200000,pair.getKey()%200000,null);
+            if (pair.getValue().instance instanceof Enemy){
+                g.drawString("1",50,100);
+            }
         }
-        if (changeAvatarPrompt) {
-            paintChangeAvatar(g);
+        if (changeAvatarPrompt || changeAvatarSettings || changeEnemySettings || changeGoalSettings) {
+            g.setColor(new Color(0,0,0,100));
+            g.fillRect(0,0,1920,1080);
+            g.setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,60));
+            g.drawImage(promptBack,100,100,null);
+            if (changeAvatarPrompt) paintChangeAvatar(g);
+            else if (changeAvatarSettings || changeEnemySettings) paintAvatarSettings(g);
+            else if (changeGoalSettings) paintGoalSettings(g);
+            g.setColor(Color.ORANGE);
+            g.fillRect(yesRect.x,yesRect.y,yesRect.width,yesRect.height);
+            g.fillRect(noRect.x,noRect.y,noRect.width,noRect.height);
+            g.drawImage(buttonImage,yesRect.x,yesRect.y,null);
+            g.drawImage(buttonImage,noRect.x,noRect.y,null);
+            if (yesRect.contains(mouse)) g.drawImage(buttonClickedImage,yesRect.x,yesRect.y,null);
+            else g.drawImage(buttonImage,yesRect.x,yesRect.y,null);
+            if (noRect.contains(mouse)) g.drawImage(buttonClickedImage,noRect.x,noRect.y,null);
+            else g.drawImage(buttonImage,noRect.x,noRect.y,null);
+            g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
+            g.drawString("SAVE",ctrPosition(yesRect,"SAVE",g),yesRect.y+70);
+            g.drawString("CANCEL",ctrPosition(noRect,"CANCEL",g),noRect.y+70);
         }
-        else if (changeAvatarSettings) {
-            paintAvatarSettings(g);
-        }
+
         g.setFont(font);
         g.setColor(Color.black);
+        g.setFont(font);
+
+        g.drawString(String.format("%d",Sprite.getSpriteHashMap().size()),50,50);
+        if (curImage != null) {
+            g.drawImage(curImage,0,0,null);
+            g.drawImage(blockSprites[0],50,0,null);
+        }
+
     }
     // ------------ MouseListener ------------------------------------------
     public void mouseEntered(MouseEvent e) {}
@@ -626,7 +782,10 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         int ctrX = bounds.x+(bounds.width-width)/2;
         return ctrX;
     }
-
+    public static int find(String[] arr, String val) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i].equals(val)) return i;
+        }
+        return -1;
+    }
 }
-
-

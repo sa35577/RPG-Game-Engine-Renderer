@@ -23,8 +23,6 @@ public class Sprite<T> {
     }
     public static void delete(int x, int y) {
         if (spriteHashMap.containsKey(x*200000+y)) spriteHashMap.remove(x*200000+y);
-
-
     }
 
     public int getX() {return this.locX;}
