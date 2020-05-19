@@ -4,6 +4,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.Timer;
+import javax.swing.plaf.ScrollBarUI;
+import javax.swing.plaf.ScrollPaneUI;
 
 
 public class Dialog extends JFrame implements ActionListener {
@@ -36,7 +38,7 @@ public class Dialog extends JFrame implements ActionListener {
     public void start() {myTimer.start();}
     public void actionPerformed(ActionEvent e) {
 
-        d.repaint();
+        //d.repaint();
 
     }
 
@@ -47,6 +49,7 @@ class DialogPanel extends JPanel implements KeyListener,MouseListener {
     private boolean startedTyping=false;
     private ArrayList<String> arr;
     public JTextArea j;
+    public JScrollPane pane;
     //private JDialog dia;
     public String txt;
     public DialogPanel(Dialog d) {
@@ -58,21 +61,43 @@ class DialogPanel extends JPanel implements KeyListener,MouseListener {
 
 
         //d.setLocation(100,100);
+
         j = new JTextArea();
-        j.setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,15));
+
+//        pane.setLocation(50,50);
+//        pane.setBackground(Color.red);
+//        pane.setVisible(true);
+        j.setBackground(null);
+        j.setBounds(50,50,200,200);
+        j.setVisible(true);
+        j.setEditable(true);
+        j.setLineWrap(true);
+       // add(pane);
+        //add(j);
+        pane = new JScrollPane(j,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        pane.setBackground(null);
+        pane.setVisible(true);
+        pane.setBounds(50,50,200,200);
+        System.out.println(pane.getBackground());
+        add(pane);
+
+//        mainFrame.pack();
+
+
+        //j.setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,15));
         //j.setOpaque(false);
        // j.setBackground(new Color(0,0,152,255));
-        j.setBackground(new Color(255,0,0));
+        //j.setBackground(new Color(255,0,0));
 /*
         JScrollPane scrollPane = new JScrollPane(j);
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setOpaque(false);
-*/
+*//*
         j.setBounds(0,0,200,200);
         j.setLineWrap(true);
         j.setVisible(true);
         j.setEditable(true);
-        add(j);
+        add(j);*/
 
 
 
@@ -88,7 +113,7 @@ class DialogPanel extends JPanel implements KeyListener,MouseListener {
         }*/
         System.out.println("update");
     }
-
+/*
     public void paintComponent(Graphics g) {
         System.out.println(345);
         g.setColor(Color.BLACK);
@@ -96,7 +121,7 @@ class DialogPanel extends JPanel implements KeyListener,MouseListener {
         g.setColor(new Color(207,185,151));
         g.fillRect(100,100,600,400);
 
-    }
+    }*/
 
 
     @Override
