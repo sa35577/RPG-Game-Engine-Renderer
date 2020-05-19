@@ -54,7 +54,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
     private int unsavedSpeed,unsavedHealth;
     private Image unsavedMask;
     private int[] unsavedArrPoints;
+    private String unsavedTitle,unsavedContent;
     private int dialogCtr;
+    private JTextArea titleArea,contentArea;
 
     public EditPanel(Edit e) {
         mainFrame = e;
@@ -164,6 +166,30 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         for (int i = 0; i < 5; i++) {
             oneToFiveBlocks[i] = new Rectangle(250+337*i,500,50,50);
         }
+        JDesktopPane dpane = new JDesktopPane();
+        titleArea = new JTextArea();
+        titleArea.setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,60));
+        titleArea.setBackground(new Color(0,0,222));
+        titleArea.setLocation(250,250);
+        titleArea.setPreferredSize(new Dimension(1000,200));
+        titleArea.setLineWrap(true);
+        titleArea.setVisible(true);
+        titleArea.setEditable(true);
+
+        contentArea = new JTextArea();
+        contentArea.setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,25));
+        contentArea.setBackground(new Color(0,0,222));
+        contentArea.setLocation(250,500);
+        contentArea.setPreferredSize(new Dimension(1000,700));
+        contentArea.setLineWrap(true);
+        contentArea.setVisible(true);
+        contentArea.setEditable(true);
+
+        dpane.add(titleArea);
+        dpane.add(contentArea);
+        dpane.setVisible(true);
+        add(dpane);
+
     }
     public void addNotify() {
         super.addNotify();
@@ -393,6 +419,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                         if (idx < 6) new Block(curSprite, sx, sy, curImage).init();
                         else if (idx < 7) new Goal(curSprite,sx,sy,curImage,null).init();
                         else if (idx < 8) new Goal(curSprite,sx,sy,curImage,blockSprites[0]).init();
+                        else if (idx < 9) new Message(curSprite,sx,sy,curImage).init();
                     }
                     else if (curType == ITEM) {
                         Item item = new Item(curSprite,sx,sy,curImage);
@@ -444,6 +471,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                         int unsavedPointstoOpen = ((Goal) inst).getPointsToOpen();
                         unsavedArrPoints = new int[]{unsavedPointstoOpen/10000,(unsavedPointstoOpen/1000)%10,(unsavedPointstoOpen/100)%10,(unsavedPointstoOpen/10)%10,(unsavedPointstoOpen)%10};
                         curGoal = (Goal)inst;
+                    }
+                    else if (inst instanceof Message) {
+
                     }
                 }
             }
