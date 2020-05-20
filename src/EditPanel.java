@@ -5,6 +5,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
+import java.awt.image.SinglePixelPackedSampleModel;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -44,17 +45,20 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
     private Avatar avatar;
     private Enemy curEnemy;
     private Goal curGoal;
-    private boolean changeAvatarSettings, changeEnemySettings,changeGoalSettings,changeMessageSettings,changeKeyHoleSettings;
+    private boolean changeAvatarSettings, changeEnemySettings,changeGoalSettings,changeMessageSettings,changeKeyHoleSettings,changeSpikeSettings;
     public static final int SPEED = 0, HEALTH = 1;
-    public static final String[] avatarSettings = new String[]{"Speed","Health"}, goalSettings = new String[]{"Mask","Unlock"}, goalMasks = new String[]{"None","Cement","Cloud","Dirt","Glass","Gold","Grass"}, messageSettings = new String[]{"Title","Content"}, keyHoleSettings = new String[]{"Unlock Requirement"};
+    public static final String[] avatarSettings = new String[]{"Speed","Health"}, goalSettings = new String[]{"Mask","Unlock"},
+            goalMasks = new String[]{"None","Cement","Cloud","Dirt","Glass","Gold","Grass"},
+            messageSettings = new String[]{"Title","Content"},
+            keyHoleSettings = new String[]{"Unlock Requirement"},
+            spikeSettings = new String[]{"Damage"};
     public static final int MASK = 0, UNLOCK = 1;
-    private Rectangle[] avatarSettingsRects,goalSettingsRects,messageSettingsRects,keyHoleSettingsRects;
+    private Rectangle[] avatarSettingsRects,goalSettingsRects,messageSettingsRects,keyHoleSettingsRects,spikeSettingsRects;
     private int curSetting;
     private Rectangle[] oneToTenBlocks,oneToFiveBlocks;
     private int unsavedSpeed,unsavedHealth;
     private Image unsavedMask;
     private int[] unsavedArrPoints;
-    private int unsavedUnlockRequirement;
     private int dialogCtr;
     public static final int TITLE = 0, CONTENT = 1;
     private JTextArea titleArea,contentArea;
@@ -62,6 +66,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
     private Message curMessage;
     public static final int UNLOCKREQUIREMENT = 0;
     private KeyHole curKeyHole;
+    public static final int DAMAGE = 0;
+    private Spike curSpike;
+    private int unsavedDamage;
 
     public EditPanel(Edit e) {
         this.setLayout(null);
@@ -165,6 +172,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         changeGoalSettings = false;
         changeMessageSettings = false;
         changeKeyHoleSettings = false;
+        changeSpikeSettings = false;
         curSetting = 0;
         oneToTenBlocks = new Rectangle[10];
         oneToFiveBlocks = new Rectangle[5];
@@ -204,8 +212,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         add(contentPane);
 
         curKeyHole = null;
-
-
+        curSpike = null;
 
     }
     public void addNotify() {
@@ -504,6 +511,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                         else if (idx < 8) new Goal(curSprite,sx,sy,curImage,blockSprites[0]).init();
                         else if (idx < 9) new Message(curSprite,sx,sy,curImage).init();
                         else if (idx < 11) new KeyHole(curSprite,sx,sy,curImage,idx-9).init();
+                        else if (idx < 12) new Spike(curSprite,sx,sy,curImage).init();
                     }
                     else if (curType == ITEM) {
                         Item item = new Item(curSprite,sx,sy,curImage);
@@ -538,9 +546,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                     if (inst instanceof Enemy) {
                         changeEnemySettings = true;
                         curSetting = 0;
-                        unsavedHealth = ((Enemy)inst).getHealth();
-                        unsavedSpeed = ((Enemy)inst).getSpeed();
                         curEnemy = (Enemy)inst;
+                        unsavedHealth = curEnemy.getHealth();
+                        unsavedSpeed = curEnemy.getSpeed();
                     }
                     else if (inst instanceof Avatar) {
                         changeAvatarSettings = true;
@@ -551,10 +559,10 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                     else if (inst instanceof Goal) {
                         curSetting = MASK;
                         changeGoalSettings = true;
-                        unsavedMask = ((Goal) inst).getMask();
-                        int unsavedPointstoOpen = ((Goal) inst).getPointsToOpen();
+                        curGoal = (Goal) inst;
+                        unsavedMask = curGoal.getMask();
+                        int unsavedPointstoOpen = curGoal.getPointsToOpen();
                         unsavedArrPoints = new int[]{unsavedPointstoOpen/10000,(unsavedPointstoOpen/1000)%10,(unsavedPointstoOpen/100)%10,(unsavedPointstoOpen/10)%10,(unsavedPointstoOpen)%10};
-                        curGoal = (Goal)inst;
                     }
                     else if (inst instanceof Message) {
                         curSetting = TITLE;
@@ -572,7 +580,12 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                         titleArea.setEditable(true);
                         titleArea.setVisible(true);
                         titleArea.setText(Integer.toString(curKeyHole.getUnlockRequirement()));
-
+                    }
+                    else if (inst instanceof Spike) {
+                        curSetting = DAMAGE;
+                        changeSpikeSettings = true;
+                        curSpike = (Spike) inst;
+                        unsavedDamage = curSpike.getDmg();
                     }
                 }
             }
@@ -757,6 +770,12 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                 paintX += keyHoleSettingsRects[i].width + 10;
             }
 
+            spikeSettingsRects = new Rectangle[1];
+            paintX = 250;
+            for (int i = 0; i < keyHoleSettingsRects.length; i++) {
+                keyHoleSettingsRects[i] = new Rectangle(paintX,250,g.getFontMetrics().stringWidth(keyHoleSettings[i])+20,50);
+                paintX += keyHoleSettingsRects[i].width + 10;
+            }
         }
         //System.out.println(g.getFontMetrics().stringWidth(avatarSettings[0]));
         if (readyToDelete) mainFrame.setCursor(Cursor.CROSSHAIR_CURSOR);
