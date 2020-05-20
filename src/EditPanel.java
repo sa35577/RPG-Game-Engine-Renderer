@@ -45,15 +45,16 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
     private Avatar avatar;
     private Enemy curEnemy;
     private Goal curGoal;
-    private boolean changeAvatarSettings, changeEnemySettings,changeGoalSettings,changeMessageSettings,changeKeyHoleSettings,changeSpikeSettings;
+    private boolean changeAvatarSettings, changeEnemySettings,changeGoalSettings,changeMessageSettings,changeKeyHoleSettings,changeSpikeSettings,changeCoinSettings;
     public static final int SPEED = 0, HEALTH = 1;
     public static final String[] avatarSettings = new String[]{"Speed","Health"}, goalSettings = new String[]{"Mask","Unlock"},
             goalMasks = new String[]{"None","Cement","Cloud","Dirt","Glass","Gold","Grass"},
             messageSettings = new String[]{"Title","Content"},
             keyHoleSettings = new String[]{"Unlock Requirement"},
-            spikeSettings = new String[]{"Damage"};
+            spikeSettings = new String[]{"Damage"},
+            coinSettings = new String[]{"Points"};
     public static final int MASK = 0, UNLOCK = 1;
-    private Rectangle[] avatarSettingsRects,goalSettingsRects,messageSettingsRects,keyHoleSettingsRects,spikeSettingsRects;
+    private Rectangle[] avatarSettingsRects,goalSettingsRects,messageSettingsRects,keyHoleSettingsRects,spikeSettingsRects,coinSettingsRects;
     private int curSetting;
     private Rectangle[] oneToTenBlocks,oneToFiveBlocks;
     private int unsavedSpeed,unsavedHealth;
@@ -69,6 +70,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
     public static final int DAMAGE = 0;
     private Spike curSpike;
     private int unsavedDamage;
+    public static final int POINTS = 0;
+    private Coin curCoin;
+    private int unsavedPts;
 
     public EditPanel(Edit e) {
         this.setLayout(null);
@@ -407,6 +411,46 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             }
             return;
         }
+        if (changeSpikeSettings) {
+            if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+                for (int i = 0; i < 5; i++) {
+                    if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                        unsavedDamage = i+1;
+                        break;
+                    }
+                }
+            }
+            if (yesRect.contains(mouse)) {
+                curSpike.setDmg(unsavedDamage);
+                changeSpikeSettings = false;
+                readyToModify = true;
+            }
+            else if (noRect.contains(mouse)) {
+                changeSpikeSettings = false;
+                readyToModify = true;
+            }
+            return;
+        }
+        if (changeCoinSettings) {
+            if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+                for (int i = 0; i < 5; i++) {
+                    if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                        unsavedPts = i+1;
+                        break;
+                    }
+                }
+            }
+            if (yesRect.contains(mouse)) {
+                curCoin.setPts(unsavedPts);
+                changeCoinSettings = false;
+                readyToModify = true;
+            }
+            else if (noRect.contains(mouse)) {
+                changeCoinSettings = false;
+                readyToModify = true;
+            }
+            return;
+        }
         if (avatarRect.contains(mouse)) curType = AVATAR;
         else if (enemyRect.contains(mouse)) curType = ENEMY;
         else if (blockRect.contains(mouse)) curType = BLOCK;
@@ -512,10 +556,12 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                         else if (idx < 9) new Message(curSprite,sx,sy,curImage).init();
                         else if (idx < 11) new KeyHole(curSprite,sx,sy,curImage,idx-9).init();
                         else if (idx < 12) new Spike(curSprite,sx,sy,curImage).init();
+                        else new Block(curSprite,sx,sy,curImage).init();
                     }
                     else if (curType == ITEM) {
-                        Item item = new Item(curSprite,sx,sy,curImage);
-                        item.init();
+                        int idx = find(itemStrings,curSprite);
+                        if (idx == 0) new Coin(curSprite,sx,sy,curImage,false).init();
+                        else if (idx == 1) new Coin(curSprite,sx,sy,curImage,true).init();
                     }/*
                     else if (curType == SYSTEM) {
                         System sys = new System(curSprite,sx,sy,curImage);
@@ -586,6 +632,17 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                         changeSpikeSettings = true;
                         curSpike = (Spike) inst;
                         unsavedDamage = curSpike.getDmg();
+                    }
+                    else if (inst instanceof Coin) {
+                        curCoin = (Coin) inst;
+                        if (curCoin.isEditable()) {
+                            unsavedPts = curCoin.getPts();
+                            curSetting = POINTS;
+                            changeCoinSettings = true;
+                        }
+                        else {
+                            curCoin = null;
+                        }
                     }
                 }
             }
@@ -729,10 +786,60 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         }
         g.setColor(Color.BLUE);
         g.drawRect(titleArea.getX(),titleArea.getY(),titleArea.getWidth(),titleArea.getHeight());
-
-
     }
 
+    public void paintSpikeSettings(Graphics g) {
+        mouse = getMousePosition();
+        if (mouse == null) mouse = new Point(0,0);
+
+        g.drawString("SETTINGS",getTitlePosition("SETTINGS",g),175);
+        g.setColor(Color.BLUE);
+        g.drawString(spikeSettings[curSetting],getTitlePosition(spikeSettings[curSetting],g),250);
+        g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
+        for (int i = 0; i < spikeSettingsRects.length; i++) {
+            if (curSetting == i || spikeSettingsRects[i].contains(mouse))
+                g.setColor(Color.RED);
+            else
+                g.setColor(Color.ORANGE);
+            g.fillRect(spikeSettingsRects[i].x,spikeSettingsRects[i].y,spikeSettingsRects[i].width,spikeSettingsRects[i].height);
+            g.setColor(Color.blue);
+            g.drawString(spikeSettings[i],spikeSettingsRects[i].x+10,spikeSettingsRects[i].y+30);
+        }
+        g.setColor(Color.black);
+        for (int i = 0; i < oneToFiveBlocks.length; i++) {
+            g.drawString(String.format("%d",i+1),ctrPosition(oneToFiveBlocks[i],String.format("%d",i+1),g),oneToFiveBlocks[i].y+oneToFiveBlocks[i].width*3/2);
+        }
+        g.fillRect(oneToFiveBlocks[0].x,oneToFiveBlocks[0].y+oneToFiveBlocks[0].width/2-5,oneToFiveBlocks[4].x+oneToFiveBlocks[4].width-oneToFiveBlocks[0].x,10);
+        g.setColor(Color.YELLOW);
+        g.fillOval(oneToFiveBlocks[unsavedDamage-1].x,oneToFiveBlocks[unsavedDamage-1].y,oneToFiveBlocks[unsavedDamage-1].width,oneToFiveBlocks[unsavedDamage-1].height);
+    }
+
+    public void paintCoinSettings(Graphics g) {
+        mouse = getMousePosition();
+        if (mouse == null) mouse = new Point(0,0);
+
+        g.drawString("SETTINGS",getTitlePosition("SETTINGS",g),175);
+        g.setColor(Color.BLUE);
+        g.drawString(coinSettings[curSetting],getTitlePosition(coinSettings[curSetting],g),250);
+        g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
+        for (int i = 0; i < coinSettingsRects.length; i++) {
+            if (curSetting == i || coinSettingsRects[i].contains(mouse))
+                g.setColor(Color.RED);
+            else
+                g.setColor(Color.ORANGE);
+            g.fillRect(coinSettingsRects[i].x,coinSettingsRects[i].y,coinSettingsRects[i].width,coinSettingsRects[i].height);
+            g.setColor(Color.blue);
+            g.drawString(coinSettings[i],coinSettingsRects[i].x+10,coinSettingsRects[i].y+30);
+        }
+        g.setColor(Color.black);
+        for (int i = 0; i < oneToFiveBlocks.length; i++) {
+            g.drawString(String.format("%d",i+1),ctrPosition(oneToFiveBlocks[i],String.format("%d",i+1),g),oneToFiveBlocks[i].y+oneToFiveBlocks[i].width*3/2);
+        }
+        g.fillRect(oneToFiveBlocks[0].x,oneToFiveBlocks[0].y+oneToFiveBlocks[0].width/2-5,oneToFiveBlocks[4].x+oneToFiveBlocks[4].width-oneToFiveBlocks[0].x,10);
+        g.setColor(Color.YELLOW);
+        g.fillOval(oneToFiveBlocks[unsavedPts-1].x,oneToFiveBlocks[unsavedPts-1].y,oneToFiveBlocks[unsavedPts-1].width,oneToFiveBlocks[unsavedPts-1].height);
+
+    }
 
 
     public void paintComponent(Graphics g) {
@@ -775,6 +882,13 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             for (int i = 0; i < spikeSettingsRects.length; i++) {
                 spikeSettingsRects[i] = new Rectangle(paintX,250,g.getFontMetrics().stringWidth(spikeSettings[i])+20,50);
                 paintX += spikeSettingsRects[i].width + 10;
+            }
+
+            coinSettingsRects = new Rectangle[1];
+            paintX = 250;
+            for (int i = 0; i < coinSettingsRects.length; i++) {
+                coinSettingsRects[i] = new Rectangle(paintX,250,g.getFontMetrics().stringWidth(coinSettings[i])+20,50);
+                paintX += coinSettingsRects[i].width + 10;
             }
         }
         //System.out.println(g.getFontMetrics().stringWidth(avatarSettings[0]));
@@ -898,7 +1012,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                 g.drawString("1",50,100);
             }
         }
-        if (changeAvatarPrompt || changeAvatarSettings || changeEnemySettings || changeGoalSettings || changeMessageSettings || changeKeyHoleSettings) {
+        if (changeAvatarPrompt || changeAvatarSettings || changeEnemySettings || changeGoalSettings || changeMessageSettings || changeKeyHoleSettings || changeSpikeSettings || changeCoinSettings) {
             g.setColor(new Color(0,0,0,100));
             g.fillRect(0,0,1920,1080);
             g.setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,60));
@@ -908,6 +1022,8 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             else if (changeGoalSettings) paintGoalSettings(g);
             else if (changeMessageSettings) paintMessageSettings(g);
             else if (changeKeyHoleSettings) paintKeyHoleSettings(g);
+            else if (changeSpikeSettings) paintSpikeSettings(g);
+            else if (changeCoinSettings) paintCoinSettings(g);
             g.setColor(Color.ORANGE);
             g.fillRect(yesRect.x,yesRect.y,yesRect.width,yesRect.height);
             g.fillRect(noRect.x,noRect.y,noRect.width,noRect.height);
