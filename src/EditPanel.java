@@ -772,9 +772,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
 
             spikeSettingsRects = new Rectangle[1];
             paintX = 250;
-            for (int i = 0; i < keyHoleSettingsRects.length; i++) {
-                keyHoleSettingsRects[i] = new Rectangle(paintX,250,g.getFontMetrics().stringWidth(keyHoleSettings[i])+20,50);
-                paintX += keyHoleSettingsRects[i].width + 10;
+            for (int i = 0; i < spikeSettingsRects.length; i++) {
+                spikeSettingsRects[i] = new Rectangle(paintX,250,g.getFontMetrics().stringWidth(spikeSettings[i])+20,50);
+                paintX += spikeSettingsRects[i].width + 10;
             }
         }
         //System.out.println(g.getFontMetrics().stringWidth(avatarSettings[0]));
