@@ -5,8 +5,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Ellipse2D;
-import java.awt.image.SinglePixelPackedSampleModel;
-import java.security.Key;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -91,6 +89,11 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
     private TimeBonus curTimeBonus;
 
     private KeyInsert curKeyInsert;
+
+    private Countdown curCountdown;
+    private Rectangle countDownRect;
+
+    private boolean changeCountdown;
 
 
     public EditPanel(Edit e) {
@@ -213,7 +216,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         titleArea.setLineWrap(true);
         titleArea.setVisible(false);
         titleArea.setEditable(false);
-        titleArea.addKeyListener(this);;
+        titleArea.addKeyListener(this);
         add(titleArea);
 
         curMessage = null;
@@ -238,6 +241,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         curSpike = null;
         curCoin = null;
         curHealthBonus = null;
+        curCountdown = null;
+        countDownRect = null;
+        changeCountdown = false;
 
     }
     public void addNotify() {
@@ -602,9 +608,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                     }
                 } else if (curType == SYSTEM) {
                     if (systemSprites.length > ind) {
-                        curSprite = systemStrings[ind];
-                        curImage = systemSprites[ind];
-                        isAvatar = false;
+                        if (ind == 0) {
+                            curCountdown = new Countdown();
+                        }
                     }
                 }
             }
@@ -752,6 +758,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                     }
                 }
             }
+            else if (countDownRect.contains(mouse) && curCountdown != null) {
+                changeCountdown = true;
+            }
         }
     }
 
@@ -763,7 +772,6 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         g.setColor(BROWN);
         g.drawString("You have more than one avatar on the board, which is not allowed.",getTitlePosition("You have more than one avatar on the board, which is not allowed.",g),250);
         g.drawString("Press Y to use new avatar data, N to use old avatar data.",getTitlePosition("Press Y to use new avatar data, N to use old avatar data.",g),300);
-
     }
 
     private void paintAvatarSettings(Graphics g) {
@@ -1060,6 +1068,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             keyInsertSettingsRects = new Rectangle[1];
             keyInsertSettingsRects[0] = new Rectangle(paintX,250,g.getFontMetrics().stringWidth(keyInsertSettings[0])+20,50);
 
+            countDownRect = new Rectangle(gameRect.x,gameRect.y+gameRect.height,80+g.getFontMetrics().stringWidth("00:00:00"),50);
         }
         //System.out.println(g.getFontMetrics().stringWidth(avatarSettings[0]));
         if (readyToDelete) mainFrame.setCursor(Cursor.CROSSHAIR_CURSOR);
@@ -1222,7 +1231,12 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             g.drawImage(curImage,0,0,null);
             g.drawImage(blockSprites[0],50,0,null);
         }
-
+        g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
+        g.setColor(Color.WHITE);
+        if (curCountdown != null) {
+            g.drawImage(systemSprites[0],countDownRect.x,countDownRect.y,null);
+            g.drawString(curCountdown.getStrTime(),countDownRect.x+80,countDownRect.y+50);
+        }
     }
     // ------------ MouseListener ------------------------------------------
     public void mouseEntered(MouseEvent e) {}

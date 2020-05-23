@@ -33,7 +33,7 @@ public class Dialog extends JFrame implements ActionListener {
     }
 
     public static void main(String[] args) {
-        new Dialog();
+
     }
     public void start() {myTimer.start();}
     public void actionPerformed(ActionEvent e) {
