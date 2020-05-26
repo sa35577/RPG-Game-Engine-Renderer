@@ -96,7 +96,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
     private Countdown curCountdown;
     private PointTotal curPointTotal;
     private Health curHealth;
-
+    private Image left,right,up,down;
+    private Rectangle leftRect,rightRect,upRect,downRect;
+    private int offX,offY;
 
     public EditPanel(Edit e) {
         this.setLayout(null);
@@ -250,6 +252,16 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         curHealth = null;
         changeHealthSettings = false;
         healthRect = null;
+
+        left = new ImageIcon("left.png").getImage();
+        right = new ImageIcon("right.png").getImage();
+        up = new ImageIcon("up.png").getImage();
+        down = new ImageIcon("down.png").getImage();
+        offX = 0; offY = 0;
+        upRect = new Rectangle(gameRect.x - 50,gameRect.y,40,40);
+        downRect = new Rectangle(gameRect.x - 50,gameRect.y + gameRect.height - 40,40,40);
+        leftRect = new Rectangle(gameRect.x,gameRect.y - 50,40,40);
+        rightRect = new Rectangle(gameRect.x + gameRect.width - 40,gameRect.y - 50,40,40);
 
     }
     public void addNotify() {
@@ -654,8 +666,8 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             else readyToPaste = false;
 
             if (readyToPaste && gameRect.contains(mouse)) {
-                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x;
-                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y;
+                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x + offX;
+                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y + offY;
                 if (!isAvatar || !containsAvatar) {
                    // new Sprite(curSprite, sx, sy, curImage);
                     if (isAvatar) {
@@ -708,8 +720,8 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         }
         else if (curTool == DELETE) {
             if (gameRect.contains(mouse)) {
-                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x;
-                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y;
+                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x + offX;
+                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y + offY;
                 if (Sprite.getSpriteHashMap().get(sx*200000+sy).instance instanceof Coin) {
                     curPointTotal.decrease(((Coin) Sprite.getSpriteHashMap().get(sx*200000+sy).instance).getPts());
                 }
@@ -719,8 +731,8 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         }
         else if (curTool == TOOL) {
             if (gameRect.contains(mouse)) {
-                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x;
-                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y;
+                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x + offX;
+                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y + offY;
                 int spriteKey = sx*200000+sy;
                 if (Sprite.getSpriteHashMap().containsKey(spriteKey)) {
                     Object inst = Sprite.getSpriteHashMap().get(spriteKey).instance;
@@ -819,6 +831,18 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                 titleArea.setText(Integer.toString(curHealth.getValue()));
                 curSetting = 0;
             }
+        }
+        if (upRect.contains(mouse)) {
+            offY = Math.max(offY-1,0);
+        }
+        else if (downRect.contains(mouse)) {
+            offY = Math.min(offY+1,100);
+        }
+        else if (leftRect.contains(mouse)) {
+            offX = Math.max(offX-1,0);
+        }
+        else if (rightRect.contains(mouse)) {
+            offX = Math.min(offX+1,100);
         }
     }
 
@@ -1195,9 +1219,10 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         Iterator<Map.Entry<Integer, Sprite>> it = Sprite.getSpriteHashMap().entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<Integer, Sprite> pair = it.next();
-            g.drawImage(pair.getValue().getImg(),pair.getKey()/200000,pair.getKey()%200000,null);
-            if (pair.getValue().instance instanceof Enemy){
-                g.drawString("1",50,100);
+            int drawX = pair.getKey()/200000, drawY = pair.getKey()%200000;
+            System.out.printf("%d %d \n",drawX,drawY);
+            if (offX*75 + gameRect.x <= drawX && (offX + 16)*75 + gameRect.x >= drawX && offY*75 + gameRect.y <= drawY && (offY + 10)*75 + gameRect.y >= drawY) {
+                g.drawImage(pair.getValue().getImg(), drawX - (offX*75), drawY - (offY*75), null);
             }
         }
         if (changeAvatarPrompt || changeAvatarSettings || changeEnemySettings || changeGoalSettings ||
@@ -1234,6 +1259,11 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             g.drawString("CANCEL",ctrPosition(noRect,"CANCEL",g),noRect.y+70);
         }
         else {
+            g.drawImage(left,leftRect.x,leftRect.y,null);
+            g.drawImage(right,rightRect.x,rightRect.y,null);
+            g.drawImage(up,upRect.x,upRect.y,null);
+            g.drawImage(down,downRect.x,downRect.y,null);
+
             if (curCountdown != null) {
                 g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
                 if (countDownRect.contains(mouse)) {
