@@ -821,8 +821,8 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             else readyToPaste = false;
 
             if (readyToPaste && gameRect.contains(mouse)) {
-                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x + offX;
-                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y + offY;
+                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x + offX*75;
+                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y + offY*75;
                 if (!isAvatar || !containsAvatar) {
                    // new Sprite(curSprite, sx, sy, curImage);
                     if (isAvatar) {
@@ -875,8 +875,8 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         }
         else if (curTool == DELETE) {
             if (gameRect.contains(mouse)) {
-                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x + offX;
-                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y + offY;
+                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x + offX*75;
+                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y + offY*75;
                 if (Sprite.getSpriteHashMap().get(sx*200000+sy).instance instanceof Coin) {
                     curPointTotal.decrease(((Coin) Sprite.getSpriteHashMap().get(sx*200000+sy).instance).getPts());
                 }
@@ -888,8 +888,8 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         }
         else if (curTool == TOOL) {
             if (gameRect.contains(mouse)) {
-                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x + offX;
-                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y + offY;
+                int sx = ((mouse.x - gameRect.x) / 75) * 75 + gameRect.x + offX*75;
+                int sy = ((mouse.y - gameRect.y) / 75) * 75 + gameRect.y + offY*75;
                 int spriteKey = sx*200000+sy;
                 if (Sprite.getSpriteHashMap().containsKey(spriteKey)) {
                     Object inst = Sprite.getSpriteHashMap().get(spriteKey).instance;
@@ -1575,6 +1575,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         }
         g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
         g.drawString(String.format("%d %d",mouse.x,mouse.y),50,50);
+        g.drawString(String.format("%d %d",offX,offY),50,100);
+
+
 
 
     }
