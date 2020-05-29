@@ -16,7 +16,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
     private Rectangle avatarRect,enemyRect,blockRect,itemRect,systemRect,spritesRect;
     private Rectangle gameRect;
     private Image title;
-    private boolean topDown;
+
     public static final int AVATAR = 0, ENEMY = 1, BLOCK = 2, ITEM = 3, SYSTEM = 4;
     private int curType;
     private Image[] maroonTexts = new Image[5];
@@ -100,12 +100,28 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
     private Rectangle leftRect,rightRect,upRect,downRect;
     private int offX,offY;
 
+    private boolean changeLevelSettings;
+    private String levelName, levelDescription;
+    private Image levelBackground,unsavedBackground;
+    private boolean topDown;
+    private String[] levelSettings;
+    private Rectangle[] levelSettingsRects;
+    private Rectangle settingsRect;
+    private Color backgroundColor,unsavedBackgroundColor;
+    public static final int NAME = 0, DESCRIPTION = 1, BACKGROUND = 2, NATURE = 3;
+    private Image[] backgrounds,miniBackgrounds;
+    private String[] backgroundStrings;
+    private Rectangle[] miniBackgroundsRects;
+    private JTextArea[] rgbAreas;
+    private Rectangle previewColorRect;
+    private Rectangle rect1,rect2;
+
+
     public EditPanel(Edit e) {
         this.setLayout(null);
         mainFrame = e;
         addMouseListener(this);
         addKeyListener(this);
-        topDown = true;
         avatarRect = new Rectangle(40,250,60,30);
         enemyRect = new Rectangle(100,250,60,30);
         blockRect = new Rectangle(160,250,60,30);
@@ -113,7 +129,6 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         systemRect = new Rectangle(280,250,60,30);
         spritesRect = new Rectangle(40,300,300,300);
         coolBack = new ImageIcon("scroll.png").getImage().getScaledInstance(1920,1080, Image.SCALE_SMOOTH);
-
         systemStrings = new String[]{"clock","score","health","frag"};
         systemSprites = new Image[4];
         for (int i = 0; i < 4; i++) {
@@ -263,6 +278,44 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         leftRect = new Rectangle(gameRect.x,gameRect.y - 50,40,40);
         rightRect = new Rectangle(gameRect.x + gameRect.width - 40,gameRect.y - 50,40,40);
 
+        changeLevelSettings = false;
+        topDown = true;
+        levelBackground = null;
+        levelName = "Level 1";
+        levelDescription = "";
+        levelSettings = new String[]{"Name","Description","Background","Nature"};
+        unsavedBackground = null;
+        backgroundColor = new Color(0,0,0);
+        unsavedBackgroundColor = null;
+        backgroundStrings = new String[]{"Beach","City","Forest","Nebula Aqua-Pink",
+                            "Nebula Blue","Nebula Red","Ocean","Underwater"};
+        backgrounds = new Image[backgroundStrings.length];
+        miniBackgrounds = new Image[backgroundStrings.length];
+        miniBackgroundsRects = new Rectangle[backgroundStrings.length+1];
+        for (int i = 0; i < backgrounds.length; i++) {
+            backgrounds[i] = new ImageIcon(String.format("Backgrounds/%s.png",backgroundStrings[i])).getImage().getScaledInstance(gameRect.width,gameRect.height,Image.SCALE_SMOOTH);
+            miniBackgroundsRects[i] = new Rectangle(350+250*(i%4),350+170*(i/4),250,160);
+            miniBackgrounds[i] = new ImageIcon(String.format("Backgrounds/%s.png",backgroundStrings[i])).getImage().getScaledInstance(miniBackgroundsRects[i].width,miniBackgroundsRects[i].height,Image.SCALE_SMOOTH);
+        }
+        miniBackgroundsRects[backgroundStrings.length] = new Rectangle(350+250*(backgroundStrings.length%4),350+170*(backgroundStrings.length/4),1000,100);
+
+        rgbAreas = new JTextArea[3];
+        for (int i = 0; i < 3; i++) {
+            rgbAreas[i] = new JTextArea();
+            rgbAreas[i].setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,30));
+            rgbAreas[i].setBackground(new Color(0,0,0,0));
+            rgbAreas[i].setBounds(1500+30,350+100*i,80,40);
+            rgbAreas[i].setWrapStyleWord(true);
+            rgbAreas[i].setLineWrap(true);
+            rgbAreas[i].setVisible(false);
+            rgbAreas[i].setEditable(false);
+            rgbAreas[i].addKeyListener(this);
+            add(rgbAreas[i]);
+        }
+        previewColorRect = new Rectangle(1500,700,100,100);
+        rect1 = new Rectangle(350,500,400,200);
+        rect2 = new Rectangle(1100,500,400,200);
+
     }
     public void addNotify() {
         super.addNotify();
@@ -390,18 +443,12 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                 if (messageSettingsRects[i].contains(mouse)) {
                     curSetting = i;
                     if (i == 0) {
-                        contentArea.setVisible(false);
-                        contentArea.setEditable(false);
-                        contentPane.setVisible(false);
-                        titleArea.setVisible(true);
-                        titleArea.setEditable(true);
+                        contentArea.setVisible(false); contentArea.setEditable(false); contentPane.setVisible(false);
+                        titleArea.setVisible(true); titleArea.setEditable(true);
                     }
                     else if (i == 1) {
-                        titleArea.setVisible(false);
-                        titleArea.setEditable(false);
-                        contentArea.setVisible(true);
-                        contentArea.setEditable(true);
-                        contentPane.setVisible(true);
+                        titleArea.setVisible(false); titleArea.setEditable(false);
+                        contentArea.setVisible(true); contentArea.setEditable(true); contentPane.setVisible(true);
                     }
                 }
             }
@@ -412,21 +459,15 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
 
             if (yesRect.contains(mouse)) {
                 changeMessageSettings = false;
-                titleArea.setVisible(false);
-                titleArea.setEditable(false);
-                contentArea.setVisible(false);
-                contentArea.setEditable(false);
-                contentPane.setVisible(false);
+                titleArea.setVisible(false); titleArea.setEditable(false);
+                contentArea.setVisible(false); contentArea.setEditable(false); contentPane.setVisible(false);
                 curMessage.setTitle(titleArea.getText());
                 curMessage.setContent(contentArea.getText());
             }
             else if (noRect.contains(mouse)) {
                 changeMessageSettings = false;
-                titleArea.setVisible(false);
-                titleArea.setEditable(false);
-                contentArea.setVisible(false);
-                contentArea.setEditable(false);
-                contentPane.setVisible(false);
+                titleArea.setVisible(false); titleArea.setEditable(false);
+                contentArea.setVisible(false); contentArea.setEditable(false); contentPane.setVisible(false);
             }
             return;
         }
@@ -435,15 +476,13 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                 try {
                     curKeyHole.setUnlockRequirement(Integer.parseInt(titleArea.getText()));
                     changeKeyHoleSettings = false;
-                    titleArea.setVisible(false);
-                    titleArea.setEditable(false);
+                    titleArea.setVisible(false); titleArea.setEditable(false);
                 }
                 catch (NumberFormatException e) {}
             }
             if (noRect.contains(mouse)) {
                 changeKeyHoleSettings = false;
-                titleArea.setVisible(false);
-                titleArea.setEditable(false);
+                titleArea.setVisible(false); titleArea.setEditable(false);
             }
             return;
         }
@@ -509,15 +548,13 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                 try {
                     curTimeBonus.setValue(Integer.parseInt(titleArea.getText()));
                     changeTimeBonusSettings = false;
-                    titleArea.setVisible(false);
-                    titleArea.setEditable(false);
+                    titleArea.setVisible(false); titleArea.setEditable(false);
                 }
                 catch (NumberFormatException e) {}
             }
             else if (noRect.contains(mouse)) {
                 changeTimeBonusSettings = false;
-                titleArea.setVisible(false);
-                titleArea.setEditable(false);
+                titleArea.setVisible(false); titleArea.setEditable(false);
             }
         }
         if (changeKeyInsertSettings) {
@@ -525,15 +562,13 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                 try {
                     curKeyInsert.setValue(Integer.parseInt(titleArea.getText()));
                     changeKeyInsertSettings = false;
-                    titleArea.setVisible(false);
-                    titleArea.setEditable(false);
+                    titleArea.setVisible(false); titleArea.setEditable(false);
                 }
                 catch (NumberFormatException e) {}
             }
             if (noRect.contains(mouse)) {
                 changeKeyInsertSettings = false;
-                titleArea.setVisible(false);
-                titleArea.setEditable(false);
+                titleArea.setVisible(false); titleArea.setEditable(false);
             }
             return;
         }
@@ -547,16 +582,14 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                         System.out.println(tl);
                         curCountdown.setTimeLeft(s);
                         changeCountdownSettings = false;
-                        titleArea.setVisible(false);
-                        titleArea.setEditable(false);
+                        titleArea.setVisible(false); titleArea.setEditable(false);
                     }
                     catch (NumberFormatException e) {}
                 }
             }
             else if (noRect.contains(mouse)) {
                 changeCountdownSettings = false;
-                titleArea.setVisible(false);
-                titleArea.setEditable(false);
+                titleArea.setVisible(false); titleArea.setEditable(false);
             }
             return;
         }
@@ -566,16 +599,136 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                 try {
                     curHealth.setValue(Integer.parseInt(titleArea.getText()));
                     changeHealthSettings = false;
-                    titleArea.setVisible(false);
-                    titleArea.setEditable(false);
+                    titleArea.setVisible(false); titleArea.setEditable(false);
                 }
                 catch (NumberFormatException e) {}
             }
             else if (noRect.contains(mouse)) {
                 changeHealthSettings = false;
-                titleArea.setVisible(false);
-                titleArea.setEditable(false);
+                titleArea.setVisible(false); titleArea.setEditable(false);
             }
+            return;
+        }
+        if (settingsRect.contains(mouse)) {
+            changeLevelSettings = true;
+            unsavedBackground = this.levelBackground;
+            titleArea.setVisible(true); titleArea.setEditable(true);
+            curSetting = NAME;
+            if (backgroundColor != null) {
+                rgbAreas[0].setText(Integer.toString(backgroundColor.getRed()));
+                rgbAreas[1].setText(Integer.toString(backgroundColor.getBlue()));
+                rgbAreas[2].setText(Integer.toString(backgroundColor.getGreen()));
+            }
+
+
+        }
+        if (changeLevelSettings) {
+            for (int i = 0; i < levelSettingsRects.length; i++) {
+                if (levelSettingsRects[i].contains(mouse)) {
+                    curSetting = i;
+                    if (curSetting == NAME) {
+                        titleArea.setVisible(true); titleArea.setEditable(true);
+                        contentPane.setVisible(false); contentArea.setEditable(false); contentArea.setVisible(false);
+                        for (JTextArea area : rgbAreas) {
+                            area.setVisible(false); area.setEditable(false);
+                        }
+                    }
+                    else if (curSetting == DESCRIPTION) {
+                        contentPane.setVisible(true); contentArea.setEditable(true); contentArea.setVisible(true);
+                        titleArea.setVisible(false); titleArea.setEditable(false);
+                        for (JTextArea area : rgbAreas) {
+                            area.setVisible(false); area.setEditable(false);
+                        }
+                    }
+                    else if (curSetting == BACKGROUND) {
+                        titleArea.setVisible(false); titleArea.setEditable(false);
+                        contentPane.setVisible(false); contentArea.setEditable(false); contentArea.setVisible(false);
+                        if (unsavedBackground == null) {
+                            for (JTextArea area : rgbAreas) {
+                                area.setVisible(true); area.setEditable(true);
+                            }
+                        }
+                        else {
+                            for (JTextArea area : rgbAreas) {
+                                area.setVisible(false); area.setEditable(false);
+                            }
+                        }
+                    }
+                    else if (curSetting == NATURE) {
+                        titleArea.setVisible(false); titleArea.setEditable(false);
+                        contentPane.setVisible(false); contentArea.setEditable(false); contentArea.setVisible(false);
+                        for (JTextArea area : rgbAreas) {
+                            area.setVisible(false); area.setEditable(false);
+                        }
+
+                    }
+                }
+            }
+            if (curSetting == BACKGROUND) {
+                for (int i = 0; i < backgrounds.length; i++) {
+                    if (miniBackgroundsRects[i].contains(mouse)) {
+                        unsavedBackground = backgrounds[i];
+                        for (JTextArea area : rgbAreas) {
+                            area.setVisible(false);
+                            area.setEditable(false);
+                        }
+                    }
+                }
+                if (miniBackgroundsRects[backgrounds.length].contains(mouse)) {
+                    unsavedBackground = null;
+                    for (JTextArea area : rgbAreas) {
+                        area.setVisible(true);
+                        area.setEditable(true);
+                    }
+                }
+            }
+            if (curSetting == NATURE) {
+                if (rect1.contains(mouse)) {
+                    topDown = true;
+                }
+                else if (rect2.contains(mouse)) {
+                    topDown = false;
+                }
+
+            }
+            if (yesRect.contains(mouse)) {
+                if (unsavedBackground != null) {
+                    levelBackground = unsavedBackground;
+                    backgroundColor = null;
+                    contentArea.setEditable(false); contentArea.setVisible(false); contentPane.setVisible(false);
+                    titleArea.setEditable(false); titleArea.setVisible(false);
+                    levelDescription = contentArea.getText();
+                    levelName = titleArea.getText();
+                    changeLevelSettings = false;
+                    for (JTextArea area : rgbAreas) {
+                        area.setVisible(false); area.setEditable(false);
+                    }
+                }
+                else {
+                    try {
+                        int redValue = Integer.parseInt(rgbAreas[0].getText()),greenValue = Integer.parseInt(rgbAreas[1].getText()),blueValue = Integer.parseInt(rgbAreas[2].getText());
+                        if (redValue >= 0 && redValue <= 255 && greenValue >= 0 && greenValue <= 255 && blueValue >= 0 && blueValue <= 255) {
+                            levelBackground = null;
+                            backgroundColor = new Color(redValue,greenValue,blueValue);
+                            contentArea.setEditable(false); contentArea.setVisible(false); contentPane.setVisible(false);
+                            titleArea.setEditable(false); titleArea.setVisible(false);
+                            levelDescription = contentArea.getText();
+                            levelName = titleArea.getText();
+                            changeLevelSettings = false;
+                            for (JTextArea area : rgbAreas) {
+                                area.setVisible(false); area.setEditable(false);
+                            }
+                        }
+                    }
+                    catch (NumberFormatException e) {}
+                }
+            }
+            else if (noRect.contains(mouse)) {
+                contentArea.setEditable(false); contentArea.setVisible(false); contentPane.setVisible(false);
+                titleArea.setEditable(false); titleArea.setVisible(false);
+                changeLevelSettings = false;
+            }
+
             return;
         }
         if (avatarRect.contains(mouse)) curType = AVATAR;
@@ -583,6 +736,8 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         else if (blockRect.contains(mouse)) curType = BLOCK;
         else if (itemRect.contains(mouse)) curType = ITEM;
         else if (systemRect.contains(mouse)) curType = SYSTEM;
+
+
 
         for (int i = 0; i < 3; i++) {
             if (toolEllipses[i].contains(mouse)) curTool = i;
@@ -726,7 +881,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
                     curPointTotal.decrease(((Coin) Sprite.getSpriteHashMap().get(sx*200000+sy).instance).getPts());
                 }
                 Sprite.delete(sx,sy);
-
+            }
+            if (countDownRect.contains(mouse)) {
+                curCountdown = null;
             }
         }
         else if (curTool == TOOL) {
@@ -1047,14 +1204,110 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         g.drawRect(titleArea.getX(),titleArea.getY(),titleArea.getWidth(),titleArea.getHeight());
     }
 
+    public void paintLevelSettings(Graphics g) {
+        g.drawString("SETTINGS",getTitlePosition("SETTINGS",g),175);
+        g.setColor(Color.BLUE);
+        g.drawString(levelSettings[curSetting],getTitlePosition(levelSettings[curSetting],g),250);
+        g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
+        g.setColor(Color.BLUE);
+
+        for (int i = 0; i < levelSettingsRects.length; i++) {
+            if (curSetting == i || levelSettingsRects[i].contains(mouse))
+                g.setColor(Color.RED);
+            else
+                g.setColor(Color.ORANGE);
+            g.fillRect(levelSettingsRects[i].x,levelSettingsRects[i].y,levelSettingsRects[i].width,levelSettingsRects[i].height);
+            g.setColor(Color.blue);
+            g.drawString(levelSettings[i],levelSettingsRects[i].x+10,levelSettingsRects[i].y+30);
+        }
+        g.setColor(Color.BLUE);
+        if (curSetting == NAME) {
+            g.drawRect(titleArea.getX(),titleArea.getY(),titleArea.getWidth(),titleArea.getHeight());
+        }
+        else if (curSetting == BACKGROUND) {
+            Graphics2D g2D = (Graphics2D)g;
+            for (int i = 0; i < backgrounds.length; i++) {
+                g.drawImage(miniBackgrounds[i],350+250*(i%4),350+170*(i/4),null);
+                if (unsavedBackground == backgrounds[i]) {
+                    g2D.setStroke(new BasicStroke(10));
+                    g.drawRect(miniBackgroundsRects[i].x,miniBackgroundsRects[i].y,miniBackgroundsRects[i].width,miniBackgroundsRects[i].height);
+                    g2D.setStroke(new BasicStroke(1));
+                }
+            }
+
+            g2D.setStroke(new BasicStroke(5));
+            g2D.drawRect(miniBackgroundsRects[backgrounds.length].x,miniBackgroundsRects[backgrounds.length].y,miniBackgroundsRects[backgrounds.length].width,miniBackgroundsRects[backgrounds.length].height);
+            g2D.setStroke(new BasicStroke(1));
+            if (unsavedBackground == null) {
+                g.fillRect(miniBackgroundsRects[backgrounds.length].x,miniBackgroundsRects[backgrounds.length].y,miniBackgroundsRects[backgrounds.length].width,miniBackgroundsRects[backgrounds.length].height);
+                g.drawString("R",1500,350);
+                g.drawString("G",1500,450);
+                g.drawString("B",1500,550);
+                g.setColor(Color.black);
+                for (JTextArea area : rgbAreas) {
+                    g.drawRect(area.getX(),area.getY(),area.getWidth(),area.getHeight());
+                }
+
+            }
+            g.setColor(Color.orange);
+            g.drawString("CUSTOM COLOR",ctrPosition(miniBackgroundsRects[backgrounds.length],"CUSTOM COLOR",g),miniBackgroundsRects[backgrounds.length].height/2+miniBackgroundsRects[backgrounds.length].y);
+            try {
+                int redValue = Integer.parseInt(rgbAreas[0].getText()), greenValue = Integer.parseInt(rgbAreas[1].getText()), blueValue = Integer.parseInt(rgbAreas[2].getText());
+                if (redValue >= 0 && redValue <= 255 && greenValue >= 0 && greenValue <= 255 && blueValue >= 0 && blueValue <= 255) {
+                    g.setColor(new Color(redValue,greenValue,blueValue));
+                    g.fillRect(previewColorRect.x,previewColorRect.y,previewColorRect.width,previewColorRect.height);
+                }
+
+            }
+            catch (NumberFormatException e) {}
+            g2D.setStroke(new BasicStroke(3));
+            g2D.drawRect(previewColorRect.x,previewColorRect.y,previewColorRect.width,previewColorRect.height);
+            g2D.setStroke(new BasicStroke(1));
+        }
+        else if (curSetting == NATURE) {
+            Graphics2D g2D = (Graphics2D)g;
+            g.setColor(Color.YELLOW);
+            if (topDown) {
+                g.fillRect(rect1.x,rect1.y,rect1.width,rect1.height);
+            }
+            else {
+                g.fillRect(rect2.x,rect2.y,rect2.width,rect2.height);
+            }
+
+            g.setColor(Color.RED);
+            g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
+            g.drawString("TOP-DOWN",ctrPosition(rect1,"TOP-DOWN",g),rect1.y+100);
+            g.drawString("PLATFORM",ctrPosition(rect2,"PLATFORM",g),rect1.y+100);
+
+
+
+            g2D.setStroke(new BasicStroke(10));
+            g2D.setColor(Color.BLACK);
+            g2D.drawRect(rect1.x,rect1.y,rect1.width,rect1.height);
+            g2D.drawRect(rect2.x,rect2.y,rect2.width,rect2.height);
+            g2D.setStroke(new BasicStroke(1));
+        }
+    }
+
 
     public void paintComponent(Graphics g) {
         mouse = getMousePosition();
         if (mouse == null) mouse = new Point(0,0);
-        if (avatarSettingsRects == null) {
+        if (levelSettingsRects == null) {
             g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
-            avatarSettingsRects = new Rectangle[2];
+
+            settingsRect = new Rectangle(gameRect.x/2-g.getFontMetrics().stringWidth("LEVEL SETTINGS")/2-10,900,g.getFontMetrics().stringWidth("LEVEL SETTINGS")+20,50);
+
+            levelSettingsRects = new Rectangle[levelSettings.length];
             int paintX = 250;
+            for (int i = 0; i < levelSettingsRects.length; i++) {
+                levelSettingsRects[i] = new Rectangle(paintX,250,g.getFontMetrics().stringWidth(levelSettings[i])+20,50);
+                paintX += levelSettingsRects[i].width + 20;
+            }
+
+
+            avatarSettingsRects = new Rectangle[2];
+            paintX = 250;
             for (int i = 0; i < avatarSettingsRects.length; i++) {
                 avatarSettingsRects[i] = new Rectangle(paintX,250, g.getFontMetrics().stringWidth(avatarSettings[i])+20,50);
                 //System.out.println(g.getFontMetrics().stringWidth(avatarSettings[i]));
@@ -1167,9 +1420,18 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             }
         }
         //g.drawImage(maroonTexts[curType],40+90*curType,250,null);
-        g.setColor(Color.BLACK);
-        g.fillRect(gameRect.x,gameRect.y,gameRect.width,gameRect.height);
-
+        if (backgroundColor != null){
+            g.setColor(backgroundColor);
+            g.fillRect(gameRect.x,gameRect.y,gameRect.width,gameRect.height);
+        }
+        else g.drawImage(levelBackground,gameRect.x,gameRect.y,null);
+        if (settingsRect.contains(mouse)) g.setColor(Color.red);
+        else g.setColor(Color.black);
+        g.fillRect(settingsRect.x,settingsRect.y,settingsRect.width,settingsRect.height);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
+        g.drawString("LEVEL SETTINGS",settingsRect.x+10,settingsRect.y+35);
+        g.setFont(font);
         g.setColor(Color.blue);
         for (int lx = 575; lx < 1700; lx += 75) g.drawLine(lx,150,lx,900);
         for (int ly = 225; ly < 950; ly += 75) g.drawLine(500,ly,1700,ly);
@@ -1193,10 +1455,10 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
 
         for (int i = 0; i < 3; i++) {
             if (curTool == i) {
-                g.drawImage(toolClickedImages[i],1750,300+125*i,null);
+                g.drawImage(toolImages[i],1750,300+125*i,null);
             }
             else {
-                g.drawImage(toolImages[i],1750,300+125*i,null);
+                g.drawImage(toolClickedImages[i],1750,300+125*i,null);
             }
         }
         mouse = getMousePosition();
@@ -1228,7 +1490,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
         if (changeAvatarPrompt || changeAvatarSettings || changeEnemySettings || changeGoalSettings ||
                 changeMessageSettings || changeKeyHoleSettings || changeSpikeSettings || changeCoinSettings ||
                 changeHealthBonusSettings || changeTimeBonusSettings || changeKeyInsertSettings ||
-                changeCountdownSettings || changeHealthSettings) {
+                changeCountdownSettings || changeHealthSettings || changeLevelSettings) {
             g.setColor(new Color(0,0,0,100));
             g.fillRect(0,0,1920,1080);
             g.setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,60));
@@ -1245,6 +1507,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             else if (changeKeyInsertSettings) paintKeyInsertSettings(g);
             else if (changeCountdownSettings) paintCountdownSettings(g);
             else if (changeHealthSettings) paintHealthSettings(g);
+            else if (changeLevelSettings) paintLevelSettings(g);
             g.setColor(Color.ORANGE);
             g.fillRect(yesRect.x,yesRect.y,yesRect.width,yesRect.height);
             g.fillRect(noRect.x,noRect.y,noRect.width,noRect.height);
@@ -1311,6 +1574,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
             g.drawImage(blockSprites[0],50,0,null);
         }
         g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,30));
+        g.drawString(String.format("%d %d",mouse.x,mouse.y),50,50);
 
 
     }
@@ -1322,7 +1586,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener {
     public void mousePressed(MouseEvent e){
         update();
         //
-        // System.out.printf("%d %d\n",e.getX(),e.getY());
+        //System.out.printf("%d %d\n",e.getX(),e.getY());
     }
 
     @Override
