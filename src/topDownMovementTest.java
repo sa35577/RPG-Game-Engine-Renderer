@@ -54,17 +54,17 @@ class topDownMovementTestPanel extends JPanel implements KeyListener {
         mainFrame = t;
         keys = new boolean[KeyEvent.KEY_LAST+1];
         addKeyListener(this);
-        inPlay = "reg";
+        inPlay = "tank";
         rightSprites = new Image[3];
         upSprites = new Image[3];
         leftSprites = new Image[3];
         downSprites = new Image[3];
         sprites = new Image[4][4];
         for (int i = 0; i < 3; i++) {
-            rightSprites[i] = new ImageIcon(String.format("Top-Down/%sR%d.png",inPlay,i)).getImage().getScaledInstance(50,50, Image.SCALE_SMOOTH);
-            upSprites[i] = new ImageIcon(String.format("Top-Down/%sU%d.png",inPlay,i)).getImage().getScaledInstance(50,50,Image.SCALE_SMOOTH);
-            downSprites[i] = new ImageIcon(String.format("Top-Down/%sD%d.png",inPlay,i)).getImage().getScaledInstance(50,50,Image.SCALE_SMOOTH);
-            leftSprites[i] = new ImageIcon(String.format("Top-Down/%sL%d.png",inPlay,i)).getImage().getScaledInstance(50,50,Image.SCALE_SMOOTH);
+            rightSprites[i] = new ImageIcon(String.format("Top-Down/%sR%d.png",inPlay,i)).getImage().getScaledInstance(75,75, Image.SCALE_SMOOTH);
+            upSprites[i] = new ImageIcon(String.format("Top-Down/%sU%d.png",inPlay,i)).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
+            downSprites[i] = new ImageIcon(String.format("Top-Down/%sD%d.png",inPlay,i)).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
+            leftSprites[i] = new ImageIcon(String.format("Top-Down/%sL%d.png",inPlay,i)).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
         }
         sprites[RIGHT] = rightSprites;
         sprites[UP] = upSprites;
@@ -163,5 +163,6 @@ class topDownMovementTestPanel extends JPanel implements KeyListener {
             g.drawImage(sprites[direction][0],(int)x,(int)y,null);
         }
         g.drawString(String.format("%d",bullets.size()),800,800);
+        g.drawRect((int)x+5,(int)y,75-10,75);
     }
 }

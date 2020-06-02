@@ -1,11 +1,15 @@
+import javax.swing.*;
 import java.awt.*;
-public class Message extends Sprite {
+import java.io.Serializable;
+
+public class Message extends Sprite implements Serializable {
     private String title;
     private String content;
-    public Message(String id, int x, int y, Image image) {
+    public Message(String id, int x, int y, ImageIcon image) {
         super(id,x,y,image);
         this.title = "";
         this.content = "";
+        super.hitBox = new Rectangle(x,y,75,75);
     }
     public void init() {super.setInstance(this);}
 

@@ -55,17 +55,17 @@ class platformMovementTestPanel extends JPanel implements KeyListener {
         mainFrame = p;
         keys = new boolean[KeyEvent.KEY_LAST+1];
         addKeyListener(this);
-        inPlay = "hero";
+        inPlay = "ache";
         rightSprites = new Image[5];
         leftSprites = new Image[5];
         for (int i = 0; i < 3; i++) {
-            rightSprites[i] = new ImageIcon(String.format("Platform/%sR%d.png",inPlay,i)).getImage().getScaledInstance(50,50, Image.SCALE_SMOOTH);
-            leftSprites[i] = new ImageIcon(String.format("Platform/%sL%d.png",inPlay,i)).getImage().getScaledInstance(50,50, Image.SCALE_SMOOTH);
+            rightSprites[i] = new ImageIcon(String.format("Platform/%sR%d.png",inPlay,i)).getImage().getScaledInstance(75,75, Image.SCALE_SMOOTH);
+            leftSprites[i] = new ImageIcon(String.format("Platform/%sL%d.png",inPlay,i)).getImage().getScaledInstance(75,75, Image.SCALE_SMOOTH);
         }
-        rightSprites[3] = new ImageIcon(String.format("Platform/%sRU.png",inPlay)).getImage().getScaledInstance(50,50, Image.SCALE_SMOOTH);
-        rightSprites[4] = new ImageIcon(String.format("Platform/%sRD.png",inPlay)).getImage().getScaledInstance(50,50, Image.SCALE_SMOOTH);
-        leftSprites[3] = new ImageIcon(String.format("Platform/%sLU.png",inPlay)).getImage().getScaledInstance(50,50, Image.SCALE_SMOOTH);
-        leftSprites[4] = new ImageIcon(String.format("Platform/%sLD.png",inPlay)).getImage().getScaledInstance(50,50, Image.SCALE_SMOOTH);
+        rightSprites[3] = new ImageIcon(String.format("Platform/%sRU.png",inPlay)).getImage().getScaledInstance(75,75, Image.SCALE_SMOOTH);
+        rightSprites[4] = new ImageIcon(String.format("Platform/%sRD.png",inPlay)).getImage().getScaledInstance(75,75, Image.SCALE_SMOOTH);
+        leftSprites[3] = new ImageIcon(String.format("Platform/%sLU.png",inPlay)).getImage().getScaledInstance(75,75, Image.SCALE_SMOOTH);
+        leftSprites[4] = new ImageIcon(String.format("Platform/%sLD.png",inPlay)).getImage().getScaledInstance(75,75, Image.SCALE_SMOOTH);
         sprites = new Image[4][5];
         sprites[0] = rightSprites;
         sprites[1] = null; sprites[3] = null;
@@ -120,8 +120,6 @@ class platformMovementTestPanel extends JPanel implements KeyListener {
         }
         y += velocityY;
         velocityY += accelerationY;
-
-
     }
 
 
@@ -149,6 +147,7 @@ class platformMovementTestPanel extends JPanel implements KeyListener {
             if (velocityY <= 0) g.drawImage(sprites[direction][3],(int)x,(int)y,null);
             else g.drawImage(sprites[direction][4],(int)x,(int)y,null);
         }
+        g.drawRect((int)x+5,(int)y,75-10,75);
 
 
     }

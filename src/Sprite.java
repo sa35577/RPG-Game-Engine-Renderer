@@ -1,19 +1,22 @@
+import javax.swing.*;
 import java.awt.*;
+import java.io.Serializable;
 import java.util.*;
 
-public class Sprite<T> {
+public class Sprite<T> implements Serializable {
     private static HashMap<Integer,Sprite> spriteHashMap = new HashMap<>();
     protected int locX,locY,key;
-    protected Image img;
+    protected ImageIcon img;
     protected String id;
     protected T instance;
-
-    public Sprite(String id, int x, int y, Image image) {
+    protected Rectangle hitBox;
+    public Sprite(String id, int x, int y, ImageIcon image) {
         this.id = id;
         this.locX = x;
         this.locY = y;
         this.key = this.locX*200000+this.locY;
         this.img = image;
+
 
         if (spriteHashMap.containsKey(this.key)) {
             spriteHashMap.remove(this.key);
@@ -27,13 +30,30 @@ public class Sprite<T> {
 
     public int getX() {return this.locX;}
     public int getY() {return this.locY;}
-    public Image getImg() {return this.img;}
+    public ImageIcon getImg() {return this.img;}
+    public void setImg(ImageIcon img) { this.img = img; }
     public int getKey() {return this.key;}
     public String getId() {return this.id;}
     public static HashMap<Integer,Sprite> getSpriteHashMap() {return spriteHashMap; }
     protected void setInstance(T instance) {
         this.instance = instance;
     }
+    public static void clear() {
+        Iterator<Map.Entry<Integer, Sprite>> it = spriteHashMap.entrySet().iterator();
+        ArrayList<Integer> deletions = new ArrayList<>();
+        while (it.hasNext()) {
+            Map.Entry<Integer, Sprite> pair = it.next();
+            Sprite sprite = pair.getValue();
+            int k = pair.getKey();
+            if (sprite.instance instanceof Avatar || sprite.instance instanceof Enemy) {
+                deletions.add(new Integer(k));
+            }
+        }
+        for (Integer k : deletions) {
+            spriteHashMap.remove(k);
+        }
+    }
+    public Sprite getSprite() { return this; }
 
 
 }
