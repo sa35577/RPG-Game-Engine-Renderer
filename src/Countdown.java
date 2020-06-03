@@ -1,4 +1,5 @@
-public class Countdown {
+import java.io.Serializable;
+public class Countdown implements Serializable {
 
     private int timeLeft;
     public Countdown() {

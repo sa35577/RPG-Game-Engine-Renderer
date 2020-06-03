@@ -1,8 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
-import java.io.Serializable;
 
-public class Enemy extends Sprite implements Serializable {
+public class Enemy extends Sprite  {
     public static final int RIGHT = 0, UP = 1, LEFT = 2, DOWN = 3;
     private String id;
     private int speed;
@@ -13,15 +12,19 @@ public class Enemy extends Sprite implements Serializable {
     private ImageIcon[] rightSprites, upSprites, leftSprites, downSprites;
     private ImageIcon[][] sprites;
     public Enemy(String id, int x, int y, ImageIcon image, int speed, int health) {
-        super(id, x, y, image);
+        super(id,x,y,image);
+        if (EditPanel.find(EditPanel.enemyTopDownStrings,id) != -1)
+            super.setImg(new ImageIcon(new ImageIcon(String.format("Top-Down/%sL0.png",id)).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH)));
+        else
+            super.setImg(new ImageIcon(new ImageIcon(String.format("Platform/%sL0.png",id)).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH)));
         this.id = id;
         this.speed = speed;
         this.health = health;
         this.direction = LEFT;
         this.stationary = false;
-        super.hitBox = new Rectangle(x+5,y,75-10,75);
+        super.hitBox = new Rectangle(x+5,y+5,75-10,75-10);
         this.bulletSpeed = 5;
-        if (EditPanel.find(EditPanel.avatarSettings,this.id) != -1) {
+        if (EditPanel.find(EditPanel.enemyTopDownStrings,this.id) != -1) {
             rightSprites = new ImageIcon[3];
             upSprites = new ImageIcon[3];
             leftSprites = new ImageIcon[3];

@@ -91,12 +91,36 @@ class topDownMovementTestPanel extends JPanel implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        keys[e.getKeyCode()] = true;
+        keys[e.getKeyCode()] = true;/*
+        keys[KeyEvent.VK_RIGHT]
+        keys[KeyEvent.VK_UP]
+        keys[KeyEvent.VK_LEFT]
+        keys[KeyEvent.VK_DOWN]*/
+        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            keys[KeyEvent.VK_UP] = false;
+            keys[KeyEvent.VK_LEFT] = false;
+            keys[KeyEvent.VK_DOWN] = false;
+        }
+        if (e.getKeyCode() == KeyEvent.VK_UP) {
+            keys[KeyEvent.VK_RIGHT] = false;
+            keys[KeyEvent.VK_LEFT] = false;
+            keys[KeyEvent.VK_DOWN] = false;
+        }
+        if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+            keys[KeyEvent.VK_UP] = false;
+            keys[KeyEvent.VK_RIGHT] = false;
+            keys[KeyEvent.VK_DOWN] = false;
+        }
+        if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+            keys[KeyEvent.VK_UP] = false;
+            keys[KeyEvent.VK_LEFT] = false;
+            keys[KeyEvent.VK_RIGHT] = false;
+        }
 
-        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {direction = RIGHT; inMotion = true;}
-        else if (e.getKeyCode() == KeyEvent.VK_UP) {direction = UP; inMotion = true; }
-        else if (e.getKeyCode() == KeyEvent.VK_LEFT) {direction = LEFT; inMotion = true; }
-        else if (e.getKeyCode() == KeyEvent.VK_DOWN) {direction = DOWN; inMotion = true; }
+        if (keys[KeyEvent.VK_RIGHT]) {direction = RIGHT; inMotion = true;}
+        else if (keys[KeyEvent.VK_UP]) {direction = UP; inMotion = true; }
+        else if (keys[KeyEvent.VK_LEFT]) {direction = LEFT; inMotion = true; }
+        else if (keys[KeyEvent.VK_DOWN]) {direction = DOWN; inMotion = true; }
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             if (rapidFire == 0) {
                 if (direction == RIGHT) {

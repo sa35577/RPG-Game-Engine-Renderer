@@ -1,4 +1,6 @@
-public class Health {
+import java.io.Serializable;
+
+public class Health implements Serializable {
     private int value,cur;
     public Health() {
         this.value = 3;

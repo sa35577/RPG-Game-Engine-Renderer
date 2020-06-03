@@ -3,6 +3,7 @@ import java.awt.*;
 import java.io.Serializable;
 import java.util.*;
 
+
 public class Sprite<T> implements Serializable {
     private static HashMap<Integer,Sprite> spriteHashMap = new HashMap<>();
     protected int locX,locY,key;
@@ -54,6 +55,7 @@ public class Sprite<T> implements Serializable {
         }
     }
     public Sprite getSprite() { return this; }
+
 
 
 }

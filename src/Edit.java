@@ -4,6 +4,7 @@ Sat Arora
 File that allows the user to make/add levels to their game.
  */
 import java.awt.event.*;
+import java.io.IOException;
 import javax.swing.*;
 import javax.swing.Timer;
 public class Edit extends JFrame implements ActionListener {
@@ -31,6 +32,9 @@ public class Edit extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (editor != null) { editor.repaint(); }
+        if (editor != null) {
+            editor.repaint();
+        }
     }
+
 }

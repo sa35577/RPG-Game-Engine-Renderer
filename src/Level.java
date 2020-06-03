@@ -11,9 +11,10 @@ public class Level extends JFrame implements ActionListener {
     Timer myTimer;
     LevelPanel lvl;
     public Level() throws IOException, ClassNotFoundException {
-        super("Gamestar Mechanic");
-        setSize(1200 ,825);
+        super("IT'S GAME TIME!");
+        setSize(1200 ,900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
         myTimer = new javax.swing.Timer(10,this);
         lvl = new LevelPanel(this);
         add(lvl);
@@ -30,6 +31,9 @@ public class Level extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (lvl != null) { lvl.repaint(); }
+        if (lvl != null) {
+            lvl.update();
+            lvl.repaint();
+        }
     }
 }

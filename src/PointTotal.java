@@ -1,4 +1,5 @@
-public class PointTotal {
+import java.io.Serializable;
+public class PointTotal implements Serializable {
     private int total;
     public PointTotal() {
         this.total = 0;
