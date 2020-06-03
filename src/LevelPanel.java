@@ -131,8 +131,8 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
             else if (nxt.instance instanceof TimeBonus) {
                 timeBonuses.add(nxt);
             }
-            maxX = Math.max(maxX,nxt.locX);
-            maxY = Math.max(maxY,nxt.locY);
+            maxX = Math.max(maxX,nxt.locX+75);
+            maxY = Math.max(maxY,nxt.locY+75);
             try {
                 obj = inputStream.readObject();
             }
@@ -157,6 +157,22 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
             else if (keys[KeyEvent.VK_UP]) {direction = UP; inMotion = true; }
             else if (keys[KeyEvent.VK_LEFT]) {direction = LEFT; inMotion = true; }
             else if (keys[KeyEvent.VK_DOWN]) {direction = DOWN; inMotion = true; }
+
+            if (direction ==RIGHT) {
+                if (avatar.locX < 600 || offX + this.getWidth() > maxX+75)
+                    avatar.locX++;
+
+            }
+            else if (direction == UP) {
+                avatar.locY--;
+            }
+            else if (direction == LEFT) {
+                avatar.locX--;
+            }
+            else if (direction == DOWN) {
+                avatar.locY++;
+            }
+
         }
         
     }
@@ -230,8 +246,12 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
         }
     }
     public void keyReleased(KeyEvent e) {
-
         keys[e.getKeyCode()] = false;
+        if (inMotion && !(keys[KeyEvent.VK_RIGHT] || keys[KeyEvent.VK_UP] || keys[KeyEvent.VK_LEFT] || keys[KeyEvent.VK_DOWN])) {
+            inMotion = false;
+            step = 0;
+        }
+
     }
     public void mouseClicked(MouseEvent e) { }
     public void mousePressed(MouseEvent e) { }

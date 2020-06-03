@@ -9,7 +9,6 @@ public class Avatar extends Sprite  {
     private int bulletSpeed;
     public ImageIcon[] rightSprites, upSprites, leftSprites, downSprites;
     public ImageIcon[][] sprites;
-    private double step;
     public Avatar(String id, int x, int y, ImageIcon image) {
         super(id,x,y,image);
         this.id = id;
