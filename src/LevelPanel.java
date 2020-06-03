@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.text.Utilities;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -97,6 +98,7 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
             nxt.locY -= 150;
             if (nxt.instance instanceof Avatar) {
                 avatar = nxt;
+                step = 0.00;
             }
             else if (nxt.instance instanceof Block) {
                 blocks.add(nxt);
@@ -140,6 +142,11 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
                 break;
             }
         }
+        if (topDown) {
+            for (int i = 0; i < 3; i++) {
+                ((Avatar) avatar.instance).sprites[RIGHT][i] = new ImageIcon(((Avatar) avatar.instance).sprites[RIGHT][i].getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH));
+            }
+        }
     }
     public void addNotify() {
         super.addNotify();
@@ -152,74 +159,38 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
             timeVar = 0;
             countdown.decrement();
         }
-        if (topDown) {
-            if (keys[KeyEvent.VK_RIGHT]) {direction = RIGHT; inMotion = true;}
-            else if (keys[KeyEvent.VK_UP]) {direction = UP; inMotion = true; }
-            else if (keys[KeyEvent.VK_LEFT]) {direction = LEFT; inMotion = true; }
-            else if (keys[KeyEvent.VK_DOWN]) {direction = DOWN; inMotion = true; }
 
-            if (direction ==RIGHT) {
-                if (avatar.locX < 600 || offX + this.getWidth() > maxX+75)
+        if (topDown) {
+            if (keys[KeyEvent.VK_RIGHT]) {
+                direction = RIGHT;
+                inMotion = true;
+            } else if (keys[KeyEvent.VK_UP]) {
+                direction = UP;
+                inMotion = true;
+            } else if (keys[KeyEvent.VK_LEFT]) {
+                direction = LEFT;
+                inMotion = true;
+            } else if (keys[KeyEvent.VK_DOWN]) {
+                direction = DOWN;
+                inMotion = true;
+            }
+            if (inMotion) {
+                if (direction == RIGHT) {
+
                     avatar.locX++;
 
+                } else if (direction == UP) {
+                    avatar.locY--;
+                } else if (direction == LEFT) {
+                    avatar.locX--;
+                } else if (direction == DOWN) {
+                    avatar.locY++;
+                }
+                step += 0.05;
+                if (step >= 4) step -= 4;
             }
-            else if (direction == UP) {
-                avatar.locY--;
-            }
-            else if (direction == LEFT) {
-                avatar.locX--;
-            }
-            else if (direction == DOWN) {
-                avatar.locY++;
-            }
-
         }
         
-    }
-
-    public void paintComponent(Graphics g) {
-        if (countdownRect == null) {
-            int paintX = 0;
-            countdownRect = new Rectangle(0,750,80+g.getFontMetrics().stringWidth("00:00:00"),75);
-
-            paintX = countdownRect.x + countdownRect.width + 10;
-            int paintY = countdownRect.y;
-            pointTotalRect = new Rectangle(paintX,paintY,150,50);
-
-            paintX += pointTotalRect.width;
-            healthRect = new Rectangle(paintX,paintY,150,50);
-        }
-        g.setColor(Color.GRAY);
-        g.fillRect(this.getX(),this.getY(),this.getWidth(),this.getHeight());
-        //drawing background, color or image
-        if (backgroundColor != null) {
-            g.setColor(backgroundColor);
-            g.fillRect(0,0,1200,750);
-        }
-        else g.drawImage(background,0,0,null);
-        //drawing the timer and current time
-        if (countdown != null) {
-            g.setFont(font30);
-            g.setColor(Color.BLACK);
-            g.drawImage(countdownImage,0,750,null);
-            g.drawString(countdown.getStrTime(),80,800);
-        }
-        //drawing the health count
-        if (health != null) {
-            g.setFont(font30);
-            g.setColor(Color.BLACK);
-            g.drawImage(healthImage,healthRect.x,healthRect.y,null);
-            g.setColor(Color.YELLOW);
-            g.drawLine(healthRect.x+80,healthRect.y+37,healthRect.x+healthRect.width,healthRect.y+37);
-            g.setColor(Color.BLUE);
-            g.drawString("0",EditPanel.ctrPosition(new Rectangle(healthRect.x+80,healthRect.y,healthRect.width-80,37),"0",g),healthRect.y+30);
-            g.setColor(Color.WHITE);
-            g.drawString(String.format("%d",health.getValue()),
-                    EditPanel.ctrPosition(new Rectangle(healthRect.x+80,healthRect.y+37,healthRect.width-80,38),String.format("%d",health.getValue()),g),
-                    healthRect.y+healthRect.height+15);
-        }
-        for (Sprite spike : spikes) g.drawImage(spike.getImg().getImage(),spike.locX,spike.locY,null);
-
     }
     public void keyTyped(KeyEvent e) {}
     public void keyPressed(KeyEvent e) {
@@ -258,4 +229,73 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
     public void mouseReleased(MouseEvent e) { }
     public void mouseEntered(MouseEvent e) { }
     public void mouseExited(MouseEvent e) { }
+    public void paintComponent(Graphics g) {
+        if (countdownRect == null) {
+            int paintX = 0;
+            countdownRect = new Rectangle(0,750,80+g.getFontMetrics().stringWidth("00:00:00"),75);
+
+            paintX = countdownRect.x + countdownRect.width + 10;
+            int paintY = countdownRect.y;
+            pointTotalRect = new Rectangle(paintX,paintY,150,50);
+
+            paintX += pointTotalRect.width;
+            healthRect = new Rectangle(paintX,paintY,150,50);
+        }
+        g.setColor(Color.GRAY);
+        g.fillRect(this.getX(),this.getY(),this.getWidth(),this.getHeight());
+        //drawing background, color or image
+        if (backgroundColor != null) {
+            g.setColor(backgroundColor);
+            g.fillRect(0,0,1200,750);
+        }
+        else g.drawImage(background,0,0,null);
+
+        for (Sprite sprite : blocks) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+        for (Sprite sprite : coins) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+        for (Sprite sprite : enemies) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+        for (Sprite sprite : goals) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+        for (Sprite sprite : healthBonuses) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+        for (Sprite sprite : keyHoles) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+        for (Sprite sprite : keyInserts) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+        for (Sprite sprite : messages) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+        for (Sprite sprite : spikes) {
+            g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+        }
+        for (Sprite sprite : teleports) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+        for (Sprite sprite : timeBonuses) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+        if (inMotion) {
+            if ((int)step % 2 == 0) {
+                g.drawImage(((Avatar)avatar.instance).sprites[direction][0].getImage(), (int)avatar.locX, (int)avatar.locY, null);
+            } else {
+                g.drawImage(((Avatar)avatar.instance).sprites[direction][((int)step + 1) / 2].getImage(), (int)avatar.locX, (int)avatar.locY, null);
+            }
+        }
+        else {
+            g.drawImage(((Avatar)avatar.instance).sprites[direction][0].getImage(),(int)avatar.locX,(int)avatar.locY,null);
+        }
+
+        //drawing the timer and current time
+        if (countdown != null) {
+            g.setFont(font30);
+            g.setColor(Color.BLACK);
+            g.drawImage(countdownImage,0,750,null);
+            g.drawString(countdown.getStrTime(),80,800);
+        }
+        //drawing the health count
+        if (health != null) {
+            g.setFont(font30);
+            g.setColor(Color.BLACK);
+            g.drawImage(healthImage,healthRect.x,healthRect.y,null);
+            g.setColor(Color.YELLOW);
+            g.drawLine(healthRect.x+80,healthRect.y+37,healthRect.x+healthRect.width,healthRect.y+37);
+            g.setColor(Color.BLUE);
+            g.drawString("0",EditPanel.ctrPosition(new Rectangle(healthRect.x+80,healthRect.y,healthRect.width-80,37),"0",g),healthRect.y+30);
+            g.setColor(Color.WHITE);
+            g.drawString(String.format("%d",health.getValue()),
+                    EditPanel.ctrPosition(new Rectangle(healthRect.x+80,healthRect.y+37,healthRect.width-80,38),String.format("%d",health.getValue()),g),
+                    healthRect.y+healthRect.height+15);
+        }
+
+    }
+
 }

@@ -22,7 +22,7 @@ public class Avatar extends Sprite  {
             leftSprites = new ImageIcon[3];
             downSprites = new ImageIcon[3];
             for (int i = 0; i < 3; i++) {
-                rightSprites[i] = new ImageIcon(String.format("Top-Down/%sR%d.png",this.id,i));
+                rightSprites[i] = new ImageIcon(new ImageIcon(String.format("Top-Down/%sR%d.png",this.id,i)).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH));;
                 upSprites[i] = new ImageIcon(new ImageIcon(String.format("Top-Down/%sU%d.png",this.id,i)).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH));
                 downSprites[i] = new ImageIcon(new ImageIcon(String.format("Top-Down/%sD%d.png",this.id,i)).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH));
                 leftSprites[i] = new ImageIcon(new ImageIcon(String.format("Top-Down/%sL%d.png",this.id,i)).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH));
