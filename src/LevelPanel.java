@@ -1,7 +1,9 @@
+import javax.sound.sampled.Line;
 import javax.swing.*;
 import javax.swing.text.Utilities;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Line2D;
 import java.io.*;
 import java.util.*;
 
@@ -30,6 +32,9 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
     private Sprite avatar;
     private boolean inMotion;
     private double step;
+    private int immunity;
+    private boolean gameOver;
+    private Sprite curMessage;
 
     private ArrayList<Sprite> blocks = new ArrayList<>(),
             coins = new ArrayList<>(),
@@ -63,6 +68,7 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
         countdown = null;
         health = null;
         pointTotal = null;
+        immunity = 0;
         
         direction = RIGHT;
         
@@ -157,16 +163,68 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
                 ((Avatar) avatar.instance).sprites[RIGHT][i] = new ImageIcon(((Avatar) avatar.instance).sprites[RIGHT][i].getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH));
             }
         }
+        avatar.hitBox = new Rectangle(avatar.hitBox.x+5,avatar.hitBox.y+5,avatar.hitBox.width-10,avatar.hitBox.height-10);
+        for (Sprite sprite : allSprites) {
+            sprite.hitBox = new Rectangle(sprite.hitBox.x+5,sprite.hitBox.y+5,sprite.hitBox.width-10,sprite.hitBox.height-10);
+            sprite.setVisible(true);
+        }
+        if (pointTotal == null) {
+            for (Sprite sprite : goals) {
+                ((Goal) sprite.instance).setReachable(false);
+            }
+        }
+        else {
+            for (Sprite sprite : goals) {
+                ((Goal) sprite.instance).setReachable(true);
+            }
+        }
         System.out.println(maxX);
         System.out.println(maxY);
-
-
     }
     public void addNotify() {
         super.addNotify();
         requestFocus();
         mainFrame.start();
     }
+    public void topDownMove(int dir) {
+        if (dir == RIGHT) {
+            System.out.printf("%d %d\n",offX,avatar.locX);
+            if (avatar.locX + avatar.hitBox.width < getWidth()/3 || offX + avatar.locX > maxX-2*getWidth()/3)
+                avatar.translate(1,0);
+            else {
+                offX++;
+                for (Sprite sprite : allSprites) sprite.translate(-1,0);
+            }
+
+        } else if (dir == UP) {
+            if (avatar.locY + avatar.hitBox.height > getHeight()/3 || offY <= 0)
+                avatar.translate(0,-1);
+            else {
+                offY--;
+                for (Sprite sprite : allSprites) sprite.translate(0,1);
+            }
+        } else if (dir == LEFT) {
+            System.out.printf("%d %d\n",offX,avatar.locX);
+            if (avatar.locX + avatar.hitBox.width > getWidth()/3 || offX <= 0)
+                avatar.translate(-1,0);
+            else {
+                offX--;
+                for (Sprite sprite : allSprites) sprite.translate(1,0);
+            }
+        } else if (dir == DOWN) {
+            if (avatar.locY + avatar.hitBox.height < getHeight()/3 || offY + avatar.locY > maxY-2*getHeight()/3)
+                avatar.translate(0,1);
+            else {
+                offY++;
+                for (Sprite sprite : allSprites) sprite.translate(0,-1);
+            }
+        }
+        if (inMotion) {
+            step += 0.05;
+            if (step >= 4) step -= 4;
+        }
+    }
+
     public void update() {
         timeVar++;
         if (timeVar == 100 && countdown != null) {
@@ -189,33 +247,134 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
                 inMotion = true;
             }
             if (inMotion) {
-                if (direction == RIGHT) {
-                    System.out.printf("%d %d\n",offX,avatar.locX);
-                    if (avatar.locX + avatar.hitBox.width < getWidth()/3 || offX + avatar.locX > maxX-2*getWidth()/3)
-                        avatar.translate(1,0);
-                    else {
-                        offX++;
-                        for (Sprite sprite : allSprites) sprite.translate(-1,0);
+                topDownMove(direction);
+            }
+            for (Sprite sprite : goals) {
+                if (sprite.hitBox.intersects(avatar.hitBox)) {
+                    if (((Goal) sprite.instance).getMaskID() != "blank") {
+                        ((Goal) sprite.instance).setMaskID("blank");
+                    }
+                    if (((Goal) sprite.instance).isReachable()) {
+                        gameOver = true;
                     }
 
-                } else if (direction == UP) {
-                    avatar.locY--;
-                } else if (direction == LEFT) {
-                    if (avatar.locX + avatar.hitBox.width < getWidth()/3 || offX + avatar.locX > getWidth()/3)
-                        avatar.translate(-1,0);
-                    else {
-                        offX--;
-                        for (Sprite sprite : allSprites) sprite.translate(1,0);
-                    }
-                } else if (direction == DOWN) {
-                    avatar.locY++;
                 }
-                step += 0.05;
-                if (step >= 4) step -= 4;
+            }
+            if (!gameOver) {
+                for (Sprite sprite : messages) {
+                    if (sprite.hitBox.intersects(avatar.hitBox)) {
+                        curMessage = sprite;
+                        if (sprite.hitBox.x - avatar.hitBox.x > 50) topDownMove(LEFT);
+                        else if (avatar.hitBox.x - sprite.hitBox.x > 50) topDownMove(RIGHT);
+                        else if (sprite.hitBox.y - avatar.hitBox.y > 50) topDownMove(UP);
+                        else if (avatar.hitBox.y - sprite.hitBox.y > 50) topDownMove(DOWN);
+                        break;
+                    }
+                }
+                if (curMessage != null) {
+                    Sprite deleteCoin = null;
+                    for (Sprite sprite : coins) {
+                        if (sprite.hitBox.intersects(avatar.hitBox)) {
+                            if (pointTotal != null) {
+                                pointTotal.increase(((Coin) sprite.instance).getPts());
+                            }
+                            deleteCoin = sprite;
+                        }
+                    }
+                    if (deleteCoin != null) {
+                        coins.remove(deleteCoin);
+                    }
+                    Sprite deleteHealthBonus = null;
+                    for (Sprite sprite : healthBonuses) {
+                        if (sprite.hitBox.intersects(avatar.hitBox)) {
+                            if (health != null) {
+                                health.setCur(Math.min(health.getCur() + ((Health) sprite.instance).getValue(), health.getValue()));
+                            }
+                            deleteHealthBonus = sprite;
+                        }
+                    }
+                    if (deleteHealthBonus != null) {
+                        healthBonuses.remove(deleteHealthBonus);
+                    }
+                    Sprite deleteKeyHole = null;
+                    for (Sprite sprite : keyHoles) {
+                        if (sprite.hitBox.intersects(avatar.hitBox)) {
+                            KeyHole keyInst = ((KeyHole) sprite.instance);
+                            if (keyInst.getColor() == KeyHole.GREEN && greenKeys >= keyInst.getUnlockRequirement()) {
+                                greenKeys -= keyInst.getUnlockRequirement();
+                                deleteKeyHole = sprite;
+                            } else if (keyInst.getColor() == KeyHole.RED && redKeys >= keyInst.getUnlockRequirement()) {
+                                redKeys -= keyInst.getUnlockRequirement();
+                                deleteKeyHole = sprite;
+                            }
+                        }
+                    }
+                    if (deleteKeyHole != null) {
+                        keyHoles.remove(deleteKeyHole);
+                    }
+                    Sprite deleteKeyInsert = null;
+                    for (Sprite sprite : keyInserts) {
+                        if (sprite.hitBox.intersects(avatar.hitBox)) {
+                            KeyInsert keyInst = ((KeyInsert) sprite.instance);
+                            if (keyInst.getColor() == KeyHole.GREEN) {
+                                greenKeys += keyInst.getValue();
+                                deleteKeyInsert = sprite;
+                            } else if (keyInst.getColor() == KeyHole.RED) {
+                                redKeys += keyInst.getValue();
+                                deleteKeyInsert = sprite;
+                            }
+                        }
+                    }
+                    if (deleteKeyInsert != null) {
+                        keyInserts.remove(deleteKeyInsert);
+                    }
+                    for (Sprite sprite : enemies) {
+                        if (sprite.hitBox.intersects(avatar.hitBox)) {
+                            ((Avatar) avatar.instance).setHealth(((Avatar) avatar.instance).getHealth() - 1);
+
+                        }
+                    }
+                }
             }
         }
-        
     }
+    //returns the status of whether the player can move in the direction, and updates any values depending on intersection
+    public boolean checkTopDown() {
+        Line2D avatarBorder = null;
+        if (direction == UP) {
+            avatarBorder.setLine(avatar.locX,avatar.locY,avatar.locX+75,avatar.locY);
+        }
+        else if (direction == DOWN) {
+            avatarBorder.setLine(avatar.locX,avatar.locY+75,avatar.locX+75,avatar.locY+75);
+        }
+        else if (direction == LEFT) {
+            avatarBorder.setLine(avatar.locX,avatar.locY,avatar.locX,avatar.locY+75);
+        }
+        else if (direction == RIGHT) {
+            avatarBorder.setLine(avatar.locX+75,avatar.locY,avatar.locX+75,avatar.locY+75);
+        }
+        for (Sprite sprite : blocks) {
+            if (sprite.hitBox.intersectsLine(avatarBorder)) {
+                return false;
+            }
+        }
+        for (Sprite sprite : keyHoles) {
+            if (sprite.hitBox.intersectsLine(avatarBorder)) {
+                KeyHole keyInst = ((KeyHole) sprite.instance);
+                if (keyInst.getColor() == KeyHole.GREEN && greenKeys < keyInst.getUnlockRequirement()) {
+                    return false;
+                }
+                else if (keyInst.getColor() == KeyHole.RED && redKeys < keyInst.getUnlockRequirement()) {
+                    return false;
+                }
+            }
+        }
+
+
+
+        return true;
+    }
+
     public void keyTyped(KeyEvent e) {}
     public void keyPressed(KeyEvent e) {
         keys[e.getKeyCode()] = true;
@@ -274,10 +433,12 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
         }
         else g.drawImage(background,0,0,null);
         for (Sprite sprite : allSprites) {
-            if (0 <= sprite.locX+75 && getWidth() >= sprite.locX && 0 <= sprite.locY + 75 && this.getWidth() >= sprite.locY) {
-                g.drawImage(sprite.getImg().getImage(),sprite.locX, sprite.locY, null);
-                g.setColor(Color.YELLOW);
-                g.drawRect(sprite.hitBox.x,sprite.hitBox.y,sprite.hitBox.width,sprite.hitBox.height);
+            if (sprite.getVisible()) {
+                if (0 <= sprite.locX + 75 && getWidth() >= sprite.locX && 0 <= sprite.locY + 75 && this.getWidth() >= sprite.locY) {
+                    g.drawImage(sprite.getImg().getImage(), sprite.locX, sprite.locY, null);
+                    g.setColor(Color.YELLOW);
+                    g.drawRect(sprite.hitBox.x, sprite.hitBox.y, sprite.hitBox.width, sprite.hitBox.height);
+                }
             }
         }
         if (inMotion) {

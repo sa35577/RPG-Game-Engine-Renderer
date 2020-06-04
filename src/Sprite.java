@@ -12,6 +12,7 @@ public class Sprite<T> implements Serializable {
     protected String id;
     protected T instance;
     protected Rectangle hitBox;
+    private boolean visible;
     public Sprite(String id, int x, int y, ImageIcon image) {
         this.id = id;
         this.locX = x;
@@ -61,7 +62,8 @@ public class Sprite<T> implements Serializable {
         this.locY += dy;
         this.hitBox.translate(dx,dy);
     }
-
+    public void setVisible(boolean visible) { this.visible = visible; }
+    public boolean getVisible() { return this.visible; }
 
 
 }
