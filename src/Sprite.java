@@ -5,6 +5,7 @@ import java.util.*;
 
 
 public class Sprite<T> implements Serializable {
+    private static final long serialVersionUID = 2552520455099101002L;
     private static HashMap<Integer,Sprite> spriteHashMap = new HashMap<>();
     protected int locX,locY,key;
     protected ImageIcon img;
@@ -55,6 +56,11 @@ public class Sprite<T> implements Serializable {
         }
     }
     public Sprite getSprite() { return this; }
+    public void translate(int dx, int dy) {
+        this.locX += dx;
+        this.locY += dy;
+        this.hitBox.translate(dx,dy);
+    }
 
 
 

@@ -41,7 +41,8 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
             messages = new ArrayList<>(),
             spikes = new ArrayList<>(),
             teleports = new ArrayList<>(),
-            timeBonuses = new ArrayList<>();
+            timeBonuses = new ArrayList<>(),
+            allSprites = new ArrayList<>();
     private int redKeys, greenKeys;
 
     public LevelPanel(Level lvl) throws IOException, ClassNotFoundException {
@@ -68,6 +69,8 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
         file = new FileInputStream("Allah.txt");
         inputStream = new ObjectInputStream(file);
         topDown = (boolean)inputStream.readObject();
+
+
         Object obj = inputStream.readObject();
         if (obj instanceof Color) {
             backgroundColor = (Color)obj;
@@ -90,17 +93,24 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
         }
         if (obj instanceof PointTotal) {
             pointTotal = (PointTotal) obj;
-            obj = inputStream.readObject();
+            try {
+                obj = inputStream.readObject();
+            }
+            catch (InvalidClassException ex) {}
         }
         while (true) {
             Sprite nxt = (Sprite) obj;
+            nxt.hitBox.translate(-500,-150);
             nxt.locX -= 500;
             nxt.locY -= 150;
             if (nxt.instance instanceof Avatar) {
                 avatar = nxt;
                 step = 0.00;
             }
-            else if (nxt.instance instanceof Block) {
+            else {
+                allSprites.add(nxt);
+            }
+            if (nxt.instance instanceof Block) {
                 blocks.add(nxt);
             }
             else if (nxt.instance instanceof Coin) {
@@ -147,6 +157,10 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
                 ((Avatar) avatar.instance).sprites[RIGHT][i] = new ImageIcon(((Avatar) avatar.instance).sprites[RIGHT][i].getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH));
             }
         }
+        System.out.println(maxX);
+        System.out.println(maxY);
+
+
     }
     public void addNotify() {
         super.addNotify();
@@ -176,13 +190,23 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
             }
             if (inMotion) {
                 if (direction == RIGHT) {
-
-                    avatar.locX++;
+                    System.out.printf("%d %d\n",offX,avatar.locX);
+                    if (avatar.locX + avatar.hitBox.width < getWidth()/3 || offX + avatar.locX > maxX-2*getWidth()/3)
+                        avatar.translate(1,0);
+                    else {
+                        offX++;
+                        for (Sprite sprite : allSprites) sprite.translate(-1,0);
+                    }
 
                 } else if (direction == UP) {
                     avatar.locY--;
                 } else if (direction == LEFT) {
-                    avatar.locX--;
+                    if (avatar.locX + avatar.hitBox.width < getWidth()/3 || offX + avatar.locX > getWidth()/3)
+                        avatar.translate(-1,0);
+                    else {
+                        offX--;
+                        for (Sprite sprite : allSprites) sprite.translate(1,0);
+                    }
                 } else if (direction == DOWN) {
                     avatar.locY++;
                 }
@@ -249,20 +273,13 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
             g.fillRect(0,0,1200,750);
         }
         else g.drawImage(background,0,0,null);
-
-        for (Sprite sprite : blocks) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
-        for (Sprite sprite : coins) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
-        for (Sprite sprite : enemies) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
-        for (Sprite sprite : goals) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
-        for (Sprite sprite : healthBonuses) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
-        for (Sprite sprite : keyHoles) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
-        for (Sprite sprite : keyInserts) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
-        for (Sprite sprite : messages) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
-        for (Sprite sprite : spikes) {
-            g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+        for (Sprite sprite : allSprites) {
+            if (0 <= sprite.locX+75 && getWidth() >= sprite.locX && 0 <= sprite.locY + 75 && this.getWidth() >= sprite.locY) {
+                g.drawImage(sprite.getImg().getImage(),sprite.locX, sprite.locY, null);
+                g.setColor(Color.YELLOW);
+                g.drawRect(sprite.hitBox.x,sprite.hitBox.y,sprite.hitBox.width,sprite.hitBox.height);
+            }
         }
-        for (Sprite sprite : teleports) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
-        for (Sprite sprite : timeBonuses) g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
         if (inMotion) {
             if ((int)step % 2 == 0) {
                 g.drawImage(((Avatar)avatar.instance).sprites[direction][0].getImage(), (int)avatar.locX, (int)avatar.locY, null);
@@ -273,7 +290,7 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
         else {
             g.drawImage(((Avatar)avatar.instance).sprites[direction][0].getImage(),(int)avatar.locX,(int)avatar.locY,null);
         }
-
+        g.drawRect(avatar.hitBox.x,avatar.hitBox.y,avatar.hitBox.width,avatar.hitBox.height);
         //drawing the timer and current time
         if (countdown != null) {
             g.setFont(font30);
