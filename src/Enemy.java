@@ -1,22 +1,29 @@
+/*
+Enemy.java
+Sat Arora
+Enemy class that holds the data for the enemies in the game.
+ */
+
 import javax.swing.*;
 import java.awt.*;
 
 public class Enemy extends Sprite  {
-    private static final long serialVersionUID = -8694421890318300463L;
+    private static final long serialVersionUID = -8694421890318300463L; //long for serialization id (writing object to text file)
     public static final int RIGHT = 0, UP = 1, LEFT = 2, DOWN = 3;
-    private String id;
-    private int speed;
-    private int health;
-    private int maxHealth;
-    private int direction;
-    private boolean stationary;
-    private int bulletSpeed;
-    private int damage;
-    private double step;
-    public ImageIcon[] rightSprites, upSprites, leftSprites, downSprites;
-    public ImageIcon[][] sprites;
-    private int drawHealthBar;
-    private int bulletPeriod,bulletTimer;
+    private String id; //enemy string name
+    private int speed; //speed of the enemy while moving
+    private int health; //amount of health the enemy has
+    private int maxHealth; //max health the enemy can have (the initial health)
+    private int direction; //direction of enemy
+    private boolean stationary; //boolean holding whether the enemy is stationary
+    private int bulletSpeed; //speed of released bullets
+    private int damage; //damage done by bullets
+    private double step; //step for the current sprite to display in motion
+    public ImageIcon[] rightSprites, upSprites, leftSprites, downSprites; //storing sprites for enemy
+    public ImageIcon[][] sprites; //stores all the sprites in a 2d array
+    private int drawHealthBar; //acts as a timer for drawing the health bar when hit
+    private int bulletPeriod,bulletTimer; //bullet period for frequency of bullets, and timer determining when the enemy can shoot
+    //constructor
     public Enemy(String id, int x, int y, ImageIcon image, int speed, int health) {
         super(id,x,y,image);
         if (EditPanel.find(EditPanel.enemyTopDownStrings,id) != -1)
@@ -34,7 +41,7 @@ public class Enemy extends Sprite  {
         this.damage = 1;
         this.step = 0;
         this.drawHealthBar = 0;
-        if (EditPanel.find(EditPanel.enemyTopDownStrings,this.id) != -1) {
+        if (EditPanel.find(EditPanel.enemyTopDownStrings,this.id) != -1) { //loading sprites for top down, if id is found in top down array
             rightSprites = new ImageIcon[3];
             upSprites = new ImageIcon[3];
             leftSprites = new ImageIcon[3];
@@ -51,7 +58,7 @@ public class Enemy extends Sprite  {
             sprites[LEFT] = leftSprites;
             sprites[DOWN] = downSprites;
         }
-        else {
+        else { //load sprites for platform
             rightSprites = new ImageIcon[5];
             leftSprites = new ImageIcon[5];
             upSprites = null;
@@ -71,7 +78,8 @@ public class Enemy extends Sprite  {
         }
 
     }
-    public void init() {super.setInstance(this);}
+    public void init() {super.setInstance(this);} //linking Sprite and Enemy
+    //getters and setters
     public int getHealth() {return this.health;}
     public int getMaxHealth() { return this.maxHealth; }
     public int getSpeed() {return this.speed; }
@@ -92,7 +100,7 @@ public class Enemy extends Sprite  {
     public void setStationary(boolean stationary) {
         this.stationary = stationary;
     }
-
+    //sets health for the edit panel, meaning both the current and meax health are the value passed in
     public void setHealth(int h) {
         this.health = h;
         this.maxHealth = h;
@@ -107,6 +115,7 @@ public class Enemy extends Sprite  {
     public void setBulletSpeed(int bulletSpeed) { this.bulletSpeed = bulletSpeed; }
     public void setDamage(int damage) { this.damage = damage; }
     public int getDamage() { return this.damage; }
+    //increasing step for sprite drawing
     public void increaseStep() {
         this.step += 0.05;
         if (this.step >= 4) this.step -= 4;
@@ -125,6 +134,7 @@ public class Enemy extends Sprite  {
     public void setBulletPeriod(int bulletPeriod) {
         this.bulletPeriod = bulletPeriod;
     }
+    //incrementing timer for being able to release a bullet periodically
     public void incrementTimer() {
         bulletTimer++;
         bulletTimer %= 100;

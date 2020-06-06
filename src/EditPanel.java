@@ -1871,7 +1871,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
             //System.out.printf("%d %d \n",drawX,drawY);
             if (offX*75 + gameRect.x <= drawX && (offX + 16)*75 + gameRect.x >= drawX && offY*75 + gameRect.y <= drawY && (offY + 10)*75 + gameRect.y >= drawY) {
                 g.drawImage(pair.getValue().getImg().getImage(), drawX - (offX*75), drawY - (offY*75), null);
-                g.drawRect(pair.getValue().hitBox.x,pair.getValue().hitBox.y,pair.getValue().hitBox.width,pair.getValue().hitBox.height);
+                g.drawRect(pair.getValue().hitBox.x-(offX*75),pair.getValue().hitBox.y-(offY*75),pair.getValue().hitBox.width,pair.getValue().hitBox.height);
             }
         }
         if (changeAvatarPrompt || changeAvatarSettings || changeEnemySettings || changeGoalSettings ||

@@ -47,6 +47,11 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
     private boolean letGoOfSpace;
     private Image redKeyImg,greenKeyImg;
 
+    //down is positive
+    private boolean onGround;
+    private int velocityY;
+    public static final int GRAVITY = 1;
+
     private ArrayList<Sprite> blocks = new ArrayList<>(),
             coins = new ArrayList<>(),
             enemies = new ArrayList<>(),
@@ -93,7 +98,7 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
         direction = RIGHT;
         promptBack = new ImageIcon("promptBlock.png").getImage().getScaledInstance(1100,800,Image.SCALE_SMOOTH);
         
-        file = new FileInputStream("Allah.txt");
+        file = new FileInputStream("Eagle.txt");
         inputStream = new ObjectInputStream(file);
         topDown = (boolean)inputStream.readObject();
 
@@ -223,6 +228,8 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
         add(messageContentPane);
 
         continueRect = new Rectangle(mainFrame.getWidth()/2-125,710,250,90);
+        velocityY = 0;
+        onGround = false;
     }
     public void addNotify() {
         super.addNotify();
@@ -332,6 +339,110 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
             countdown.decrement();
         }
         immunity = max(immunity-1,0);
+        if (keys[KeyEvent.VK_SPACE] && Bullet.avatarReadyToShoot() && letGoOfSpace) {
+            if (direction == RIGHT) bullets.add(new Bullet(avatar.hitBox.x+avatar.hitBox.width,avatar.hitBox.y+avatar.hitBox.height/2,
+                    direction,true,((Avatar) avatar.instance).getBulletSpeed(),((Avatar) avatar.instance).getDamage()));
+            else if (direction == LEFT) bullets.add(new Bullet(avatar.hitBox.x, avatar.hitBox.y+avatar.hitBox.height/2,
+                    direction,true,((Avatar) avatar.instance).getBulletSpeed(),((Avatar) avatar.instance).getDamage()));
+            else if (direction == UP && topDown) bullets.add(new Bullet(avatar.hitBox.x+avatar.hitBox.width/2,avatar.hitBox.y,
+                    direction,true,((Avatar) avatar.instance).getBulletSpeed(),((Avatar) avatar.instance).getDamage()));
+            else if (direction == DOWN && topDown) bullets.add(new Bullet(avatar.hitBox.x+avatar.hitBox.width/2,avatar.hitBox.y+avatar.hitBox.height,
+                    direction,true,((Avatar) avatar.instance).getBulletSpeed(),((Avatar) avatar.instance).getDamage()));
+            Bullet.setAvatarTime();
+            letGoOfSpace = false;
+        }
+        if (!keys[KeyEvent.VK_SPACE] && !letGoOfSpace) letGoOfSpace = true;
+        for (int i = bullets.size()-1; i >= 0; i--) {
+            while (i >= bullets.size()) i--;
+            if (bullets.size() == 0) break;
+            Bullet curBullet = bullets.get(i);
+            if (curBullet.getDir() == RIGHT) curBullet.translate(curBullet.getSpeed(),0);
+            else if (curBullet.getDir() == LEFT) curBullet.translate(-1*curBullet.getSpeed(),0);
+            else if (curBullet.getDir() == UP) curBullet.translate(0,-1*curBullet.getSpeed());
+            else if (curBullet.getDir() == DOWN) curBullet.translate(0,curBullet.getSpeed());
+
+            boolean removedIdx = false;
+
+            if (curBullet.getHitBox().x < 0 || curBullet.getHitBox().x > maxX+150) {
+
+                bullets.remove(i);
+                removedIdx = true;
+            }
+            else if (curBullet.getHitBox().y < 0 || curBullet.getHitBox().y > maxY+150) {
+                bullets.remove(i);
+                removedIdx = true;
+            }
+            if (removedIdx) continue;
+
+
+            for (Sprite sprite : blocks) {
+                if (sprite.hitBox.intersects(curBullet.getHitBox())) {
+                    bullets.remove(i);
+                    removedIdx = true;
+                    continue;
+                }
+            }
+            if (removedIdx) continue;
+            for (Sprite sprite : spikes) {
+                if (sprite.hitBox.intersects(curBullet.getHitBox())) {
+                    bullets.remove(i);
+                    removedIdx = true;
+                    continue;
+                }
+            }
+            if (removedIdx) continue;
+            for (Sprite sprite : goals) {
+                if (sprite.hitBox.intersects(curBullet.getHitBox())) {
+                    bullets.remove(i);
+                    removedIdx = true;
+                    continue;
+                }
+            }
+            if (removedIdx) continue;
+            for (Sprite sprite : keyHoles) {
+                if (sprite.hitBox.intersects(curBullet.getHitBox())) {
+                    bullets.remove(i);
+                    removedIdx = true;
+                    continue;
+                }
+            }
+            if (removedIdx) continue;
+            for (Sprite sprite : messages) {
+                if (sprite.hitBox.intersects(curBullet.getHitBox())) {
+                    bullets.remove(i);
+                    removedIdx = true;
+                    continue;
+                }
+            }
+            if (removedIdx) continue;
+            if (curBullet.isAvatarBullet()) {
+                for (Sprite sprite : enemies) {
+                    if (sprite.hitBox.intersects(curBullet.getHitBox())) {
+                        ((Enemy) sprite.instance).setDrawHealthBar(200);
+                        ((Enemy) sprite.instance).setCurHealth(max(0,((Enemy) sprite.instance).getHealth()-curBullet.getDamage()));
+                        bullets.remove(i);
+                    }
+                }
+            }
+            else {
+                if (avatar.hitBox.intersects(curBullet.getHitBox())){
+                    ((Avatar) avatar.instance).setDrawHealthBar(200);
+                    ((Avatar) avatar.instance).setHealth(max(0,((Avatar) avatar.instance).getHealth()-curBullet.getDamage()));
+                    bullets.remove(i);
+                }
+            }
+        }
+        for (Sprite sprite : goals) {
+            if (sprite.hitBox.intersects(avatar.hitBox)) {
+                if (!((Goal) sprite.instance).getMaskID().equals("blank")) {
+                    ((Goal) sprite.instance).setMaskID("blank");
+                }
+                if (isReachable()) {
+                    gameOver = true;
+                }
+
+            }
+        }
 
         if (topDown) {
             if (keys[KeyEvent.VK_RIGHT]) {
@@ -361,110 +472,8 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
                 topDownMove(((Enemy) sprite.instance).getDirection(), sprite);
             }
 
-            for (Sprite sprite : goals) {
-                if (sprite.hitBox.intersects(avatar.hitBox)) {
-                    if (!((Goal) sprite.instance).getMaskID().equals("blank")) {
-                        ((Goal) sprite.instance).setMaskID("blank");
-                    }
-                    if (isReachable()) {
-                        gameOver = true;
-                    }
-
-                }
-            }
-            if (keys[KeyEvent.VK_SPACE] && Bullet.avatarReadyToShoot() && letGoOfSpace) {
-                if (direction == RIGHT) bullets.add(new Bullet(avatar.hitBox.x+avatar.hitBox.width,avatar.hitBox.y+avatar.hitBox.height/2,
-                        direction,true,((Avatar) avatar.instance).getBulletSpeed(),((Avatar) avatar.instance).getDamage()));
-                else if (direction == LEFT) bullets.add(new Bullet(avatar.hitBox.x, avatar.hitBox.y+avatar.hitBox.height/2,
-                        direction,true,((Avatar) avatar.instance).getBulletSpeed(),((Avatar) avatar.instance).getDamage()));
-                else if (direction == UP) bullets.add(new Bullet(avatar.hitBox.x+avatar.hitBox.width/2,avatar.hitBox.y,
-                        direction,true,((Avatar) avatar.instance).getBulletSpeed(),((Avatar) avatar.instance).getDamage()));
-                else if (direction == DOWN) bullets.add(new Bullet(avatar.hitBox.x+avatar.hitBox.width/2,avatar.hitBox.y+avatar.hitBox.height,
-                        direction,true,((Avatar) avatar.instance).getBulletSpeed(),((Avatar) avatar.instance).getDamage()));
-                Bullet.setAvatarTime();
-                letGoOfSpace = false;
-            }
-            if (!keys[KeyEvent.VK_SPACE] && !letGoOfSpace) letGoOfSpace = true;
-            for (int i = bullets.size()-1; i >= 0; i--) {
-                while (i >= bullets.size()) i--;
-                if (bullets.size() == 0) break;
-                Bullet curBullet = bullets.get(i);
-                if (curBullet.getDir() == RIGHT) curBullet.translate(curBullet.getSpeed(),0);
-                else if (curBullet.getDir() == LEFT) curBullet.translate(-1*curBullet.getSpeed(),0);
-                else if (curBullet.getDir() == UP) curBullet.translate(0,-1*curBullet.getSpeed());
-                else if (curBullet.getDir() == DOWN) curBullet.translate(0,curBullet.getSpeed());
-
-                boolean removedIdx = false;
-
-                if (curBullet.getHitBox().x < 0 || curBullet.getHitBox().x > maxX+150) {
-
-                    bullets.remove(i);
-                    removedIdx = true;
-                }
-                else if (curBullet.getHitBox().y < 0 || curBullet.getHitBox().y > maxY+150) {
-                    bullets.remove(i);
-                    removedIdx = true;
-                }
-                if (removedIdx) continue;
 
 
-                for (Sprite sprite : blocks) {
-                    if (sprite.hitBox.intersects(curBullet.getHitBox())) {
-                        bullets.remove(i);
-                        removedIdx = true;
-                        continue;
-                    }
-                }
-                if (removedIdx) continue;
-                for (Sprite sprite : spikes) {
-                    if (sprite.hitBox.intersects(curBullet.getHitBox())) {
-                        bullets.remove(i);
-                        removedIdx = true;
-                        continue;
-                    }
-                }
-                if (removedIdx) continue;
-                for (Sprite sprite : goals) {
-                    if (sprite.hitBox.intersects(curBullet.getHitBox())) {
-                        bullets.remove(i);
-                        removedIdx = true;
-                        continue;
-                    }
-                }
-                if (removedIdx) continue;
-                for (Sprite sprite : keyHoles) {
-                    if (sprite.hitBox.intersects(curBullet.getHitBox())) {
-                        bullets.remove(i);
-                        removedIdx = true;
-                        continue;
-                    }
-                }
-                if (removedIdx) continue;
-                for (Sprite sprite : messages) {
-                    if (sprite.hitBox.intersects(curBullet.getHitBox())) {
-                        bullets.remove(i);
-                        removedIdx = true;
-                        continue;
-                    }
-                }
-                if (removedIdx) continue;
-                if (curBullet.isAvatarBullet()) {
-                    for (Sprite sprite : enemies) {
-                        if (sprite.hitBox.intersects(curBullet.getHitBox())) {
-                            ((Enemy) sprite.instance).setDrawHealthBar(200);
-                            ((Enemy) sprite.instance).setCurHealth(max(0,((Enemy) sprite.instance).getHealth()-curBullet.getDamage()));
-                            bullets.remove(i);
-                        }
-                    }
-                }
-                else {
-                    if (avatar.hitBox.intersects(curBullet.getHitBox())){
-                        ((Avatar) avatar.instance).setDrawHealthBar(200);
-                        ((Avatar) avatar.instance).setHealth(max(0,((Avatar) avatar.instance).getHealth()-curBullet.getDamage()));
-                        bullets.remove(i);
-                    }
-                }
-            }
             if (!gameOver) {
                 for (Sprite sprite : messages) {
                     if (sprite.hitBox.intersects(avatar.hitBox)) {
@@ -597,6 +606,36 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
                 }
             }
         }
+        else {
+            Line2D avatarBorderUp = new Line2D.Double(avatar.hitBox.x,avatar.hitBox.y,avatar.hitBox.x+avatar.hitBox.width,avatar.hitBox.y),
+                    avatarBorderDown = new Line2D.Double(avatar.hitBox.x,avatar.hitBox.y+avatar.hitBox.height,avatar.hitBox.x+avatar.hitBox.width,avatar.hitBox.y+avatar.hitBox.height),
+                    avatarBorderLeft = new Line2D.Double(avatar.hitBox.x,avatar.hitBox.y,avatar.hitBox.x,avatar.hitBox.y+avatar.hitBox.height),
+                    avatarBorderRight = new Line2D.Double(avatar.hitBox.x+avatar.hitBox.width,avatar.hitBox.y,avatar.hitBox.x+avatar.hitBox.width,avatar.hitBox.y+avatar.hitBox.height);
+            if (!onGround) {
+                velocityY += GRAVITY;
+                avatar.translate(0,velocityY);
+                for (Sprite sprite : blocks) {
+                    if (velocityY > 0 && sprite.hitBox.intersectsLine(avatarBorderDown)) {
+                        velocityY = 0;
+                        onGround = true;
+                        avatar.translate(0,sprite.hitBox.y-avatar.hitBox.y-avatar.hitBox.height);
+                    }
+                }
+            }
+        }
+    }
+    public boolean onPlatform() {
+        for (Sprite sprite : blocks) {
+            if (sprite.hitBox.contains(avatar.hitBox)) {
+                return true;
+            }
+        }
+        for (Sprite sprite : spikes) {
+            if (sprite.hitBox.contains(avatar.hitBox)) {
+                return true;
+            }
+        }
+        return false;
     }
     //returns the status of whether the player can move in the direction, and updates any values depending on intersection
     public boolean checkTopDown(Sprite curSprite, int dir) {
@@ -738,11 +777,12 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
                     }
                     else if (sprite.instance instanceof Goal) {
                         if (((Goal) sprite.instance).getMaskID().equals("blank")) {
-                            if (!isReachable()) {
-                                g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
+                            if (isReachable()) {
+
+                                g.drawImage(goalUnreachable,sprite.locX,sprite.locY,null);
                             }
                             else {
-                                g.drawImage(goalUnreachable,sprite.locX,sprite.locY,null);
+                                g.drawImage(sprite.getImg().getImage(),sprite.locX,sprite.locY,null);
                             }
                         }
                         else {
