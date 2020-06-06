@@ -1,6 +1,6 @@
 import java.io.Serializable;
 public class Countdown implements Serializable {
-
+    private static final long serialVersionUID = -7314552173772899865L;
     private int timeLeft;
     public Countdown() {
         this.timeLeft = 60;
@@ -27,5 +27,6 @@ public class Countdown implements Serializable {
     }
     public void setTimeLeft(String timeLeft) { this.timeLeft = Integer.parseInt(timeLeft.substring(0,2))*3600+Integer.parseInt(timeLeft.substring(3,5))*60+Integer.parseInt(timeLeft.substring(6)); }
     public void decrement() { this.timeLeft--; }
+    public void increease(int val) { this.timeLeft += val; }
 
 }

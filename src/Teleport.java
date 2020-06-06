@@ -34,6 +34,10 @@ public class Teleport extends Sprite implements Serializable {
             return this.exitTeleport.getY();
         }
     }
+    public boolean isEntry() {
+        return exitTeleport == null;
+    }
+
 
 
 

@@ -5,7 +5,10 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.Timer;
-public class topDownMovementTest extends JFrame implements ActionListener {
+public class topDownMovementTest {}
+
+/*
+public class topDownMovementTest extends JFrame implements ActionListener {/*
     Timer myTimer;
     topDownMovementTestPanel thingy;
     public topDownMovementTest() {
@@ -95,7 +98,7 @@ class topDownMovementTestPanel extends JPanel implements KeyListener {
         keys[KeyEvent.VK_RIGHT]
         keys[KeyEvent.VK_UP]
         keys[KeyEvent.VK_LEFT]
-        keys[KeyEvent.VK_DOWN]*/
+        keys[KeyEvent.VK_DOWN]
         if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
             keys[KeyEvent.VK_UP] = false;
             keys[KeyEvent.VK_LEFT] = false;
@@ -189,4 +192,4 @@ class topDownMovementTestPanel extends JPanel implements KeyListener {
         g.drawString(String.format("%d",bullets.size()),800,800);
         g.drawRect((int)x+5,(int)y,75-10,75);
     }
-}
+}*/

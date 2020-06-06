@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class Avatar extends Sprite  {
+    private static final long serialVersionUID = 8113733848467220040L;
     public static final int RIGHT = 0, UP = 1, LEFT = 2, DOWN = 3;
     private String id;
     private int speed;
@@ -9,6 +10,8 @@ public class Avatar extends Sprite  {
     private int bulletSpeed;
     public ImageIcon[] rightSprites, upSprites, leftSprites, downSprites;
     public ImageIcon[][] sprites;
+    private int damage;
+    private int drawHealthBar;
     public Avatar(String id, int x, int y, ImageIcon image) {
         super(id,x,y,image);
         this.id = id;
@@ -16,6 +19,8 @@ public class Avatar extends Sprite  {
         this.health = 3;
         super.hitBox = new Rectangle(x+5,y+5,75-10,75-10);
         this.bulletSpeed = 3;
+        this.damage = 1;
+        this.drawHealthBar = 0;
         if (EditPanel.find(EditPanel.playerTopDownStrings,this.id) != -1) {
             rightSprites = new ImageIcon[3];
             upSprites = new ImageIcon[3];
@@ -62,8 +67,13 @@ public class Avatar extends Sprite  {
     public void setHealth(int h) {this.health = h;}
     public int getBulletSpeed() { return this.bulletSpeed; }
     public void setBulletSpeed(int bulletSpeed) { this.bulletSpeed = bulletSpeed; }
-
-
+    public void setDamage(int damage) { this.damage = damage; }
+    public int getDamage() { return this.damage; }
+    public void decrementHealhtBar() {
+        this.drawHealthBar = Math.max(this.drawHealthBar-1,0);
+    }
+    public void setDrawHealthBar(int drawHealthBar) { this.drawHealthBar = drawHealthBar; }
+    public int getDrawHealthBar() { return this.drawHealthBar; }
 
 
 

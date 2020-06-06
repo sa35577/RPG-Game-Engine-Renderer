@@ -52,9 +52,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
     private boolean changeAvatarSettings, changeEnemySettings,changeGoalSettings,changeMessageSettings,
             changeKeyHoleSettings,changeSpikeSettings,changeCoinSettings,changeHealthBonusSettings,
             changeTimeBonusSettings,changeKeyInsertSettings;
-    public static final int SPEED = 0, HEALTH = 1, BULLETSPEED = 2, STATIONARY = 3, DIRECTION = 4;
-    public static final String[] avatarSettings = new String[]{"Speed","Health","Bullet Speed"},
-            enemySettings = new String[]{"Speed","Health","Bullet Speed","Stationary","Direction"},
+    public static final int SPEED = 0, HEALTH = 1, BULLETSPEED = 2, DAMAGESPRITE = 3, STATIONARY = 4, DIRECTION = 5;
+    public static final String[] avatarSettings = new String[]{"Speed","Health","Bullet Speed","Damage"},
+            enemySettings = new String[]{"Speed","Health","Bullet Speed","Damage","Stationary","Direction"},
             goalSettings = new String[]{"Mask","Unlock"},
             goalMasks = new String[]{"None","Cement","Cloud","Dirt","Glass","Gold","Grass"},
             messageSettings = new String[]{"Title","Content"},
@@ -389,9 +389,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
                 }
             }
             if (curSetting == SPEED) {
-                if (Math.abs(mouse.y - (oneToTenBlocks[0].y + oneToTenBlocks[0].height/2)) < 40) {
+                if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
                     for (int i = 0; i < 10; i++) {
-                        if (Math.abs(mouse.x-(oneToTenBlocks[i].x+oneToTenBlocks[i].width/2)) < 50) {
+                        if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
                             unsavedSpeed = i+1;
                             break;
                         }
@@ -419,10 +419,22 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
                     }
                 }
             }
+            else if (curSetting == DAMAGESPRITE) {
+                if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+                    for (int i = 0; i < 5; i++) {
+                        if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                            unsavedDamage = i+1;
+                            break;
+                        }
+                    }
+                }
+
+            }
             if (yesRect.contains(mouse)) {
                 avatar.setHealth(unsavedHealth);
                 avatar.setSpeed(unsavedSpeed);
                 avatar.setBulletSpeed(unsavedBulletSpeed);
+                avatar.setDamage(unsavedDamage);
                 changeAvatarSettings = false;
             }
             else if (noRect.contains(mouse)) {
@@ -437,9 +449,9 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
                 }
             }
             if (curSetting == SPEED && !unsavedStationary) {
-                if (Math.abs(mouse.y - (oneToTenBlocks[0].y + oneToTenBlocks[0].height/2)) < 40) {
+                if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
                     for (int i = 0; i < 10; i++) {
-                        if (Math.abs(mouse.x-(oneToTenBlocks[i].x+oneToTenBlocks[i].width/2)) < 50) {
+                        if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
                             unsavedSpeed = i+1;
                             break;
 
@@ -467,6 +479,17 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
                         }
                     }
                 }
+            }
+            else if (curSetting == DAMAGESPRITE) {
+                if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+                    for (int i = 0; i < 5; i++) {
+                        if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                            unsavedDamage = i+1;
+                            break;
+                        }
+                    }
+                }
+
             }
             else if (curSetting == STATIONARY) {
                 if (yesEllipse.contains(mouse)) unsavedStationary = true;
@@ -496,6 +519,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
                 curEnemy.setBulletSpeed(unsavedBulletSpeed);
                 curEnemy.setStationary(unsavedStationary);
                 curEnemy.setDirection(unsavedDirection);
+                curEnemy.setDamage(unsavedDamage);
                 String dir,spriteType;
                 if (topDown) spriteType = "Top-Down";
                 else spriteType = "Platform";
@@ -1104,6 +1128,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
                         unsavedStationary = curEnemy.isStationary();
                         unsavedDirection = curEnemy.getDirection();
                         unsavedBulletSpeed = curEnemy.getBulletSpeed();
+                        unsavedDamage = curEnemy.getDamage();
                     }
                     else if (inst instanceof Avatar) {
                         changeAvatarSettings = true;
@@ -1111,6 +1136,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
                         unsavedHealth = avatar.getHealth();
                         unsavedSpeed = avatar.getSpeed();
                         unsavedBulletSpeed = avatar.getBulletSpeed();
+                        unsavedDamage = avatar.getDamage();
                     }
                     else if (inst instanceof Goal) {
                         curSetting = MASK;
@@ -1238,13 +1264,13 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
         }
         if (curSetting == SPEED) {
             g.setColor(Color.black);
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 5; i++) {
                 //g.fillRect(oneToTenBlocks[i].x,oneToTenBlocks[i].y,oneToTenBlocks[i].width,oneToTenBlocks[i].height);
-                g.drawString(String.format("%d",i+1),ctrPosition(oneToTenBlocks[i],String.format("%d",i+1),g),oneToTenBlocks[i].y+oneToTenBlocks[i].width*3/2);
+                g.drawString(String.format("%d",i+1),ctrPosition(oneToFiveBlocks[i],String.format("%d",i+1),g),oneToFiveBlocks[i].y+oneToFiveBlocks[i].width*3/2);
             }
-            g.fillRect(oneToTenBlocks[0].x,oneToTenBlocks[0].y+oneToTenBlocks[0].width/2-5,oneToTenBlocks[9].x+oneToTenBlocks[9].width-oneToTenBlocks[0].x,10);
+            g.fillRect(oneToFiveBlocks[0].x,oneToFiveBlocks[0].y+oneToFiveBlocks[0].width/2-5,oneToFiveBlocks[4].x+oneToFiveBlocks[4].width-oneToFiveBlocks[0].x,10);
             g.setColor(Color.YELLOW);
-            g.fillOval(oneToTenBlocks[unsavedSpeed-1].x,oneToTenBlocks[unsavedSpeed-1].y,oneToTenBlocks[unsavedSpeed-1].width,oneToTenBlocks[unsavedSpeed-1].height);
+            g.fillOval(oneToFiveBlocks[unsavedSpeed-1].x,oneToFiveBlocks[unsavedSpeed-1].y,oneToFiveBlocks[unsavedSpeed-1].width,oneToFiveBlocks[unsavedSpeed-1].height);
             //g.drawLine(oneToTenBlocks[0].x,oneToTenBlocks[0].y+oneToTenBlocks[0].width/2,oneToTenBlocks[9].x+oneToTenBlocks[9].width,oneToTenBlocks[9].y+oneToTenBlocks[9].width/2);
         }
         else if (curSetting == HEALTH) {
@@ -1265,6 +1291,15 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
             g.fillRect(oneToTenBlocks[0].x,oneToTenBlocks[0].y+oneToTenBlocks[0].width/2-5,oneToTenBlocks[9].x+oneToTenBlocks[9].width-oneToTenBlocks[0].x,10);
             g.setColor(Color.YELLOW);
             g.fillOval(oneToTenBlocks[unsavedBulletSpeed-1].x,oneToTenBlocks[unsavedBulletSpeed-1].y,oneToTenBlocks[unsavedBulletSpeed-1].width,oneToTenBlocks[unsavedBulletSpeed-1].height);
+        }
+        else if (curSetting == DAMAGESPRITE) {
+            g.setColor(Color.black);
+            for (int i = 0; i < oneToFiveBlocks.length; i++) {
+                g.drawString(String.format("%d",i+1),ctrPosition(oneToFiveBlocks[i],String.format("%d",i+1),g),oneToFiveBlocks[i].y+oneToFiveBlocks[i].width*3/2);
+            }
+            g.fillRect(oneToFiveBlocks[0].x,oneToFiveBlocks[0].y+oneToFiveBlocks[0].width/2-5,oneToFiveBlocks[4].x+oneToFiveBlocks[4].width-oneToFiveBlocks[0].x,10);
+            g.setColor(Color.YELLOW);
+            g.fillOval(oneToFiveBlocks[unsavedDamage-1].x,oneToFiveBlocks[unsavedDamage-1].y,oneToFiveBlocks[unsavedDamage-1].width,oneToFiveBlocks[unsavedDamage-1].height);
         }
     }
 
@@ -1288,12 +1323,15 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
         if (curSetting == SPEED) {
             g.setColor(Color.black);
             if (!unsavedStationary) {
-                for (int i = 0; i < 10; i++) {
-                    g.drawString(String.format("%d", i + 1), ctrPosition(oneToTenBlocks[i], String.format("%d", i + 1), g), oneToTenBlocks[i].y + oneToTenBlocks[i].width * 3 / 2);
+                for (int i = 0; i < 5; i++) {
+                    //g.fillRect(oneToTenBlocks[i].x,oneToTenBlocks[i].y,oneToTenBlocks[i].width,oneToTenBlocks[i].height);
+                    g.drawString(String.format("%d",i+1),ctrPosition(oneToFiveBlocks[i],String.format("%d",i+1),g),oneToFiveBlocks[i].y+oneToFiveBlocks[i].width*3/2);
                 }
-                g.fillRect(oneToTenBlocks[0].x, oneToTenBlocks[0].y + oneToTenBlocks[0].width / 2 - 5, oneToTenBlocks[9].x + oneToTenBlocks[9].width - oneToTenBlocks[0].x, 10);
+                g.fillRect(oneToFiveBlocks[0].x,oneToFiveBlocks[0].y+oneToFiveBlocks[0].width/2-5,oneToFiveBlocks[4].x+oneToFiveBlocks[4].width-oneToFiveBlocks[0].x,10);
                 g.setColor(Color.YELLOW);
-                g.fillOval(oneToTenBlocks[unsavedSpeed - 1].x, oneToTenBlocks[unsavedSpeed - 1].y, oneToTenBlocks[unsavedSpeed - 1].width, oneToTenBlocks[unsavedSpeed - 1].height);
+                g.fillOval(oneToFiveBlocks[unsavedSpeed-1].x,oneToFiveBlocks[unsavedSpeed-1].y,oneToFiveBlocks[unsavedSpeed-1].width,oneToFiveBlocks[unsavedSpeed-1].height);
+                //g.drawLine(oneToTenBlocks[0].x,oneToTenBlocks[0].y+oneToTenBlocks[0].width/2,oneToTenBlocks[9].x+oneToTenBlocks[9].width,oneToTenBlocks[9].y+oneToTenBlocks[9].width/2);
+
             }
             else {
                 g.drawString("Enemy is on stationary", getTitlePosition("Enemy is on stationary",g), 300);
@@ -1316,6 +1354,15 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
             g.fillRect(oneToTenBlocks[0].x,oneToTenBlocks[0].y+oneToTenBlocks[0].width/2-5,oneToTenBlocks[9].x+oneToTenBlocks[9].width-oneToTenBlocks[0].x,10);
             g.setColor(Color.YELLOW);
             g.fillOval(oneToTenBlocks[unsavedBulletSpeed].x,oneToTenBlocks[unsavedBulletSpeed].y,oneToTenBlocks[unsavedBulletSpeed].width,oneToTenBlocks[unsavedBulletSpeed].height);
+        }
+        else if (curSetting == DAMAGESPRITE) {
+            g.setColor(Color.black);
+            for (int i = 0; i < oneToFiveBlocks.length; i++) {
+                g.drawString(String.format("%d",i+1),ctrPosition(oneToFiveBlocks[i],String.format("%d",i+1),g),oneToFiveBlocks[i].y+oneToFiveBlocks[i].width*3/2);
+            }
+            g.fillRect(oneToFiveBlocks[0].x,oneToFiveBlocks[0].y+oneToFiveBlocks[0].width/2-5,oneToFiveBlocks[4].x+oneToFiveBlocks[4].width-oneToFiveBlocks[0].x,10);
+            g.setColor(Color.YELLOW);
+            g.fillOval(oneToFiveBlocks[unsavedDamage-1].x,oneToFiveBlocks[unsavedDamage-1].y,oneToFiveBlocks[unsavedDamage-1].width,oneToFiveBlocks[unsavedDamage-1].height);
         }
         else if (curSetting == STATIONARY) {
             g.setColor(Color.YELLOW);

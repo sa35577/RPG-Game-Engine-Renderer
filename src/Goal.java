@@ -4,11 +4,11 @@ import java.io.Serializable;
 
 public class Goal extends Sprite implements Serializable {
     //handles the "cement","cloud","dirt","glass","gold","grass";
+    private static final long serialVersionUID = -2823045921933857867L;
     private String id;
     private ImageIcon mask;
     private int pointsToOpen;
     private String maskID;
-    private boolean reachable;
     public Goal(String id, int x, int y, ImageIcon image, String maskID) {
         super(id,x,y,image);
         this.id = id;
@@ -29,7 +29,5 @@ public class Goal extends Sprite implements Serializable {
     public void setMask(ImageIcon mask) { this.mask = mask; }
     public int getPointsToOpen() { return pointsToOpen; }
     public void setPointsToOpen(int pointsToOpen) { this.pointsToOpen = pointsToOpen; }
-    public boolean isReachable() { return this.reachable; }
-    public void setReachable(boolean reachable) { this.reachable = reachable; }
 
 }
