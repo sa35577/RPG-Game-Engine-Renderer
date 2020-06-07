@@ -23,6 +23,11 @@ public class Enemy extends Sprite  {
     public ImageIcon[][] sprites; //stores all the sprites in a 2d array
     private int drawHealthBar; //acts as a timer for drawing the health bar when hit
     private int bulletPeriod,bulletTimer; //bullet period for frequency of bullets, and timer determining when the enemy can shoot
+    private int velocityY;
+    private int initialVelocityY;
+    private boolean onGround;
+    private int jumpPeriod;
+    private int jumpTimer;
     //constructor
     public Enemy(String id, int x, int y, ImageIcon image, int speed, int health) {
         super(id,x,y,image);
@@ -141,4 +146,48 @@ public class Enemy extends Sprite  {
     }
     public int getBulletTimer() { return this.bulletTimer; }
 
+    public int getVelocityY() {
+        return velocityY;
+    }
+
+    public void setVelocityY(int velocityY) {
+        this.velocityY = velocityY;
+    }
+
+    public boolean isOnGround() {
+        return onGround;
+    }
+
+    public void setOnGround(boolean onGround) {
+        this.onGround = onGround;
+    }
+
+    public int getJumpPeriod() {
+        return jumpPeriod;
+    }
+
+    public void setJumpPeriod(int jumpPeriod) {
+        this.jumpPeriod = jumpPeriod;
+    }
+
+    public int getJumpTimer() {
+        return jumpTimer;
+    }
+    public void setJumpTimer(int jumpTimer) {
+        this.jumpTimer = jumpTimer;
+    }
+
+    public boolean incJumpTimer() {
+        this.jumpTimer++;
+        this.jumpTimer %= this.jumpPeriod;
+        return this.jumpTimer == 0;
+    }
+
+    public int getInitialVelocityY() {
+        return initialVelocityY;
+    }
+
+    public void setInitialVelocityY(int initialVelocityY) {
+        this.initialVelocityY = initialVelocityY;
+    }
 }
