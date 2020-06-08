@@ -577,6 +577,12 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
         while (true) {
             Sprite nxt = (Sprite) obj;
             Sprite.put(nxt);
+            if (nxt.instance instanceof Avatar) {
+                avatar = (Avatar) nxt.instance;
+            }
+            else if (nxt.instance instanceof Goal) {
+                numGoals++;
+            }
             try {
                 obj = inputStream.readObject();
             }
@@ -592,8 +598,534 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
         requestFocus();
         mainFrame.start();
     }
+    //method that handles the case of when there is more than one avatar
+    public void avatarPromptSettings() {
+        if (keys[KeyEvent.VK_Y] || yesRect.contains(mouse)) { //if the user wishes to use the new avatar
+            changeAvatarPrompt = false;
+            Sprite.delete(avatarX,avatarY); //deleting old avatar sprite
+            //setting the avatar's location to the new x & y (the second sprite's values)
+            avatarX = newavatarX;
+            avatarY = newavatarY;
+            avatar = new Avatar(curSprite,avatarX,avatarY,curImage); //creating new avatar object
+            avatar.init(); //linking sprite object to avatar object
+            //putting dummy values for new avatar location, as it doesn't exist
+            newavatarY = -10;
+            newavatarX = -10;
+
+            curSprite = null;
+            curImage = null;
+            readyToPaste=true;
+        }
+        else if (keys[KeyEvent.VK_N] || noRect.contains(mouse)) {
+            changeAvatarPrompt = false;
+            //putting dummy values for new avatar location, as it doesn't exist
+            newavatarX = -10;
+            newavatarY = -10;
+            curSprite = null;
+            curImage = null;
+            readyToPaste=true;
+        }
+    }
+    //handles the data of avatar settings
+    public void avatarSettings() {
+        for (int i = 0; i < avatarSettingsRects.length; i++) {
+            if (avatarSettingsRects[i].contains(mouse)) {
+                curSetting = i; //if the user clicked on the location of the heading, the current setting changes
+            }
+        }
+        if (curSetting == SPEED) {
+            //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
+            if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+                for (int i = 0; i < 10; i++) {
+                    if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                        unsavedSpeed = i+1; //changing speed
+                        break;
+                    }
+                }
+            }
+        }
+        else if (curSetting == HEALTH) {
+            //checks for collisions with each of the ten options in the scroll bar graphic (within a certain range)
+            if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+                for (int i = 0; i < 5; i++) {
+                    if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                        unsavedHealth = i+1; //changing health
+                        break;
+
+                    }
+                }
+            }
+        }
+        else if (curSetting == BULLETSPEED) {
+            //checks for collisions with each of the ten options in the scroll bar graphic (within a certain range)
+            if (Math.abs(mouse.y - (oneToTenBlocks[0].y + oneToTenBlocks[0].height/2)) < 40) {
+                for (int i = 0; i < 10; i++) {
+                    if (Math.abs(mouse.x-(oneToTenBlocks[i].x+oneToTenBlocks[i].width/2)) < 50) {
+                        unsavedBulletSpeed = i+1; //changing bullet speed
+                        break;
+                    }
+                }
+            }
+        }
+        else if (curSetting == DAMAGESPRITE) {
+            //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
+            if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+                for (int i = 0; i < 5; i++) {
+                    if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                        unsavedDamage = i+1; //changing damage done by the bullet
+                        break;
+                    }
+                }
+            }
+
+        }
+        if (yesRect.contains(mouse)) {//if the user wants to go forth with the changes
+            //setting avatar stats to the values in each of the settings menus
+            avatar.setHealth(unsavedHealth);
+            avatar.setSpeed(unsavedSpeed);
+            avatar.setBulletSpeed(unsavedBulletSpeed);
+            avatar.setDamage(unsavedDamage);
+            changeAvatarSettings = false;
+        }
+        else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            changeAvatarSettings = false;
+        }
+    }
+    //handles the data of enemy settings
+    public void enemySettings() {
+        for (int i = 0; i < enemySettingsRects.length; i++) {
+            if (enemySettingsRects[i].contains(mouse)) {
+                curSetting = i; //if the user clicked on the location of the heading, the current setting changes
+            }
+        }
+        if (curSetting == SPEED && !unsavedStationary) {
+            //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
+            if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+                for (int i = 0; i < 10; i++) {
+                    if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                        unsavedSpeed = i+1; //changing speed
+                        break;
+
+                    }
+                }
+            }
+        }
+        else if (curSetting == HEALTH) {
+            //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
+            if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+                for (int i = 0; i < 5; i++) {
+                    if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                        unsavedHealth = i+1; //changing health
+                        break;
+
+                    }
+                }
+            }
+        }
+        else if (curSetting == BULLETSPEED) {
+            //checks for collisions with each of the ten options in the scroll bar graphic (within a certain range)
+            if (Math.abs(mouse.y - (oneToTenBlocks[0].y + oneToTenBlocks[0].height/2)) < 40) {
+                for (int i = 0; i < 10; i++) {
+                    if (Math.abs(mouse.x-(oneToTenBlocks[i].x+oneToTenBlocks[i].width/2)) < 50) {
+                        unsavedBulletSpeed = i; //changing bullet speed
+                        break;
+                    }
+                }
+            }
+        }
+        else if (curSetting == DAMAGESPRITE) {
+            //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
+            if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+                for (int i = 0; i < 5; i++) {
+                    if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                        unsavedDamage = i+1; //changing damage
+                        break;
+                    }
+                }
+            }
+
+        }
+        else if (curSetting == STATIONARY) {
+            if (yesEllipse.contains(mouse)) unsavedStationary = true;
+            else if (noEllipse.contains(mouse)) unsavedStationary = false;
+
+        }
+        else if (curSetting == DIRECTION && find(enemyPlatStrings,curEnemy.getId()) == -1) {
+            if (topDown) {
+                if (upEllipse.contains(mouse)) {
+                    unsavedDirection = Enemy.UP;
+                }
+                else if (downEllipse.contains(mouse)) {
+                    unsavedDirection = Enemy.DOWN;
+                }
+            }
+            if (leftEllipse.contains(mouse)) {
+                unsavedDirection = Enemy.LEFT;
+            }
+            else if (rightEllipse.contains(mouse)) {
+                unsavedDirection = Enemy.RIGHT;
+            }
+        }
+
+        if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
+            curEnemy.setHealth(unsavedHealth);
+            curEnemy.setSpeed(unsavedSpeed);
+            curEnemy.setBulletSpeed(unsavedBulletSpeed);
+            curEnemy.setStationary(unsavedStationary);
+            curEnemy.setDirection(unsavedDirection);
+            curEnemy.setDamage(unsavedDamage);
+            String dir,spriteType; //strings to get image from file directory for current image displayed in the editor
+            if (topDown) spriteType = "Top-Down";
+            else spriteType = "Platform";
+            if (unsavedDirection == Enemy.RIGHT) dir = "R";
+            else if (unsavedDirection == Enemy.UP) dir = "U";
+            else if (unsavedDirection == Enemy.LEFT) dir = "L";
+            else dir = "D";
+            //loading image
+            curEnemy.getSprite().setImg(new ImageIcon(new ImageIcon(String.format("%s/%s%s0.png",spriteType,curEnemy.getId(),dir)).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH)));
+
+
+            changeEnemySettings = false;
+            curEnemy = null;
+        }
+        else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            changeEnemySettings = false;
+            curEnemy = null;
+        }
+    }
+    //handles the data of goal settings
+    public void goalSettings() {
+        for (int i = 0; i < goalSettingsRects.length; i++) {
+            if (goalSettingsRects[i].contains(mouse)) {
+                curSetting = i; //if the user clicked on the location of the heading, the current setting changes
+            }
+        }
+
+        if (curSetting == UNLOCK) {
+            //checks for collisions with each of the ten options in the scroll bar graphic (within a certain range)
+            for (int i = 0; i < unsavedArrPoints.length; i++) {
+                if (Math.abs(mouse.y - (oneToFiveBlocks[i].y + oneToFiveBlocks[i].height / 2)) < 40) {
+                    if (Math.abs(mouse.x - (oneToFiveBlocks[i].x + oneToFiveBlocks[i].width / 2)) < 50) {
+                        unsavedArrPoints[i]++; //changing the digit value of the unlock requirement
+                        unsavedArrPoints[i] %= 10;
+                        break;
+                    }
+                }
+            }
+        }
+        if (curSetting == MASK) {
+            for (int i = 0; i < goalMasks.length; i++) {
+                if (new Rectangle(dialogCtr-200+100*(i%4),300+100*(i/4),75,75).contains(mouse)) { //if the mask image is clicked on
+                    if (i == 0) { //the "none" option was selected
+                        unsavedMask = new ImageIcon(new ImageIcon("Block/blank.png").getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH));
+                        unsavedMaskID = "blank";
+                    }
+                    else {
+                        unsavedMask = new ImageIcon(blockSprites[i-1]);
+                        unsavedMaskID = blockStrings[i-1];
+                    }
+                }
+            }
+        }
+        if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
+            curGoal.setMaskID(unsavedMaskID);
+            curGoal.setMask(unsavedMask);
+            //converting the digit array into a number
+            curGoal.setPointsToOpen(unsavedArrPoints[0]*10000+unsavedArrPoints[1]*1000+unsavedArrPoints[2]*100+unsavedArrPoints[3]*10+unsavedArrPoints[4]);
+            changeGoalSettings = false;
+        }
+        else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            changeGoalSettings = false;
+        }
+    }
+    //handles the data of message settings
+    public void messageSettings() {
+        for (int i = 0; i < messageSettingsRects.length; i++) {
+            if (messageSettingsRects[i].contains(mouse)) {
+                curSetting = i; //if the user clicked on the location of the heading, the current setting changes
+                //text areas need to be set visible or invisible depending on the new setting
+                if (i == 0) {
+                    contentArea.setVisible(false); contentArea.setEditable(false); contentPane.setVisible(false);
+                    titleArea.setVisible(true); titleArea.setEditable(true);
+                }
+                else if (i == 1) {
+                    titleArea.setVisible(false); titleArea.setEditable(false);
+                    contentArea.setVisible(true); contentArea.setEditable(true); contentPane.setVisible(true);
+                }
+            }
+        }
+        if (curSetting == TITLE) {
+            //removing all enters from the text area
+            titleArea.setText(titleArea.getText().replaceAll("\n",""));
+            //setting a character limit of 45
+            if (titleArea.getText().length() > 45) titleArea.setText(titleArea.getText().substring(0,45));
+        }
+
+        if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
+            changeMessageSettings = false;
+            titleArea.setVisible(false); titleArea.setEditable(false);
+            contentArea.setVisible(false); contentArea.setEditable(false); contentPane.setVisible(false);
+            curMessage.setTitle(titleArea.getText());
+            curMessage.setContent(contentArea.getText());
+        }
+        else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            changeMessageSettings = false;
+            titleArea.setVisible(false); titleArea.setEditable(false);
+            contentArea.setVisible(false); contentArea.setEditable(false); contentPane.setVisible(false);
+        }
+    }
+    //handles the data of key hole settings
+    public void keyHoleSettings() {
+        if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
+            try { //will only perform the saving if the title area text can be parsed to an integer
+                curKeyHole.setUnlockRequirement(Integer.parseInt(titleArea.getText()));
+                changeKeyHoleSettings = false;
+                titleArea.setVisible(false); titleArea.setEditable(false);
+            }
+            catch (NumberFormatException e) {}
+        }
+        if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            changeKeyHoleSettings = false;
+            titleArea.setVisible(false); titleArea.setEditable(false);
+        }
+    }
+    //handles the data of spike settings
+    public void spikeSettings() {
+        //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
+        if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+            for (int i = 0; i < 5; i++) {
+                if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                    unsavedDamage = i+1; //changing the damage
+                    break;
+                }
+            }
+        }
+        if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
+            curSpike.setDmg(unsavedDamage);
+            changeSpikeSettings = false;
+        }
+        else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            changeSpikeSettings = false;
+        }
+    }
+    //handles the data of coin settings
+    public void coinSettings() {
+        //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
+        if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+            for (int i = 0; i < 5; i++) {
+                if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                    unsavedPts = i+1; //setting the point value
+                    break;
+                }
+            }
+        }
+        if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
+            curPointTotal.decrease(curCoin.getPts()); //removing the old point value from the point total
+            curCoin.setPts(unsavedPts);
+            curPointTotal.increase(curCoin.getPts()); //adding the new point value to the point total
+            changeCoinSettings = false;
+        }
+        else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            changeCoinSettings = false;
+        }
+    }
+    //handles the data of health bonus settings
+    public void healthBonusSettings() {
+        //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
+        if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
+            for (int i = 0; i < 5; i++) {
+                if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
+                    unsavedValue = i+1;
+                    break;
+                }
+            }
+        }
+        if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
+            curHealthBonus.setValue(unsavedValue);
+            changeHealthBonusSettings = false;
+        }
+        else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            changeHealthBonusSettings = false;
+        }
+    }
+    //handles the data of time bonus settings
+    public void timeBonusSettings() {
+        titleArea.setText(titleArea.getText().replaceAll("\n",""));
+        if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
+            try { //only goes forth and saves everything if the title area text can be parsed into an integer
+                curTimeBonus.setValue(Integer.parseInt(titleArea.getText()));
+                changeTimeBonusSettings = false;
+                titleArea.setVisible(false); titleArea.setEditable(false);
+            }
+            catch (NumberFormatException e) {}
+        }
+        else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            changeTimeBonusSettings = false;
+            titleArea.setVisible(false); titleArea.setEditable(false);
+        }
+    }
+    //handles the data of key insert settings
+    public void keyInsertSettings() {
+        if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
+            try { //only goes forth and saves everything if the title area text can be parsed into an integer
+                curKeyInsert.setValue(Integer.parseInt(titleArea.getText()));
+                changeKeyInsertSettings = false;
+                titleArea.setVisible(false); titleArea.setEditable(false);
+            }
+            catch (NumberFormatException e) {}
+        }
+        if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            changeKeyInsertSettings = false;
+            titleArea.setVisible(false); titleArea.setEditable(false);
+        }
+    }
+    //handles the data of countdown settings
+    public void countdownSettings() {
+        titleArea.setText(titleArea.getText().replaceAll("\n","")); //removing all enter characters
+        if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
+            if (titleArea.getText().charAt(2) == ':' && titleArea.getText().charAt(5) == ':' && titleArea.getText().length() == 8) { //if the input is entered in the specified manner
+                try { //only goes forth and saves everything if the hours, minutes, and seconds can be parsed into an integer
+                    int tl = Integer.parseInt(titleArea.getText().substring(0,2))*3600+Integer.parseInt(titleArea.getText().substring(3,5))*60+Integer.parseInt(titleArea.getText().substring(6));
+                    curCountdown.setTimeLeft(titleArea.getText());
+                    changeCountdownSettings = false;
+                    titleArea.setVisible(false); titleArea.setEditable(false);
+                }
+                catch (NumberFormatException e) {}
+            }
+        }
+        else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            changeCountdownSettings = false;
+            titleArea.setVisible(false); titleArea.setEditable(false);
+        }
+    }
+    //handles the data of health settings
+    public void healthSettings() {
+        titleArea.setText(titleArea.getText().replaceAll("\n",""));
+        if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
+            try { //only goes forth and saves everything if the title area text can be parsed into an integer
+                curHealth.setValue(Integer.parseInt(titleArea.getText()));
+                changeHealthSettings = false;
+                titleArea.setVisible(false); titleArea.setEditable(false);
+            }
+            catch (NumberFormatException e) {}
+        }
+        else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            changeHealthSettings = false;
+            titleArea.setVisible(false); titleArea.setEditable(false);
+        }
+    }
+    //handles the data of level settings
+    public void levelSettings() {
+        for (int i = 0; i < levelSettingsRects.length; i++) {
+            if (levelSettingsRects[i].contains(mouse)) {
+                curSetting = i; //if the user clicked on the location of the heading, the current setting changes
+                //setting text areas and panes to be visible or invisible depending on the current setting
+                if (curSetting == NAME) {
+                    titleArea.setVisible(true); titleArea.setEditable(true);
+                    contentPane.setVisible(false); contentArea.setEditable(false); contentArea.setVisible(false);
+                    for (JTextArea area : rgbAreas) {
+                        area.setVisible(false); area.setEditable(false);
+                    }
+                }
+                else if (curSetting == DESCRIPTION) {
+                    contentPane.setVisible(true); contentArea.setEditable(true); contentArea.setVisible(true);
+                    titleArea.setVisible(false); titleArea.setEditable(false);
+                    for (JTextArea area : rgbAreas) {
+                        area.setVisible(false); area.setEditable(false);
+                    }
+                }
+                else if (curSetting == BACKGROUND) {
+                    titleArea.setVisible(false); titleArea.setEditable(false);
+                    contentPane.setVisible(false); contentArea.setEditable(false); contentArea.setVisible(false);
+                    if (unsavedBackground == null) {
+                        for (JTextArea area : rgbAreas) {
+                            area.setVisible(true); area.setEditable(true);
+                        }
+                    }
+                    else {
+                        for (JTextArea area : rgbAreas) {
+                            area.setVisible(false); area.setEditable(false);
+                        }
+                    }
+                }
+                else if (curSetting == NATURE) {
+                    titleArea.setVisible(false); titleArea.setEditable(false);
+                    contentPane.setVisible(false); contentArea.setEditable(false); contentArea.setVisible(false);
+                    for (JTextArea area : rgbAreas) {
+                        area.setVisible(false); area.setEditable(false);
+                    }
+
+                }
+            }
+        }
+        if (curSetting == BACKGROUND) {
+            //goes through each mini background rectangle, changes the background and makes the RGB text areas invisible if it was clicked on
+            for (int i = 0; i < backgrounds.length; i++) {
+                if (miniBackgroundsRects[i].contains(mouse)) {
+                    unsavedBackground = new ImageIcon(backgrounds[i]);
+                    for (JTextArea area : rgbAreas) {
+                        area.setVisible(false);
+                        area.setEditable(false);
+                    }
+                }
+            }
+            if (miniBackgroundsRects[backgrounds.length].contains(mouse)) { //if the custom color option was clicked on
+                unsavedBackground = null;
+                for (JTextArea area : rgbAreas) {
+                    area.setVisible(true);
+                    area.setEditable(true);
+                }
+            }
+        }
+        if (curSetting == NATURE) {
+            if (topDownRect.contains(mouse)) {
+                topDown = true;
+                Sprite.clear(); //removes all sprites that are incompatible (avatar and enemy)
+            }
+            else if (platformRect.contains(mouse)) {
+                topDown = false;
+                Sprite.clear(); //removes all sprites that are incompatbiel (avatar and enemy)
+            }
+        }
+        if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
+            if (unsavedBackground != null) { //if the background is chosen to be an iamge
+                levelBackground = unsavedBackground;
+                backgroundColor = null;
+                contentArea.setEditable(false); contentArea.setVisible(false); contentPane.setVisible(false);
+                titleArea.setEditable(false); titleArea.setVisible(false);
+                levelDescription = contentArea.getText();
+                levelName = titleArea.getText();
+                changeLevelSettings = false;
+                for (JTextArea area : rgbAreas) {
+                    area.setVisible(false); area.setEditable(false);
+                }
+            }
+            else { //if the background is chosen to be a color
+                try {
+                    int redValue = Integer.parseInt(rgbAreas[0].getText()),greenValue = Integer.parseInt(rgbAreas[1].getText()),blueValue = Integer.parseInt(rgbAreas[2].getText());
+                    if (redValue >= 0 && redValue <= 255 && greenValue >= 0 && greenValue <= 255 && blueValue >= 0 && blueValue <= 255) {
+                        levelBackground = null;
+                        backgroundColor = new Color(redValue,greenValue,blueValue);
+                        contentArea.setEditable(false); contentArea.setVisible(false); contentPane.setVisible(false);
+                        titleArea.setEditable(false); titleArea.setVisible(false);
+                        levelDescription = contentArea.getText();
+                        levelName = titleArea.getText();
+                        changeLevelSettings = false;
+                        for (JTextArea area : rgbAreas) {
+                            area.setVisible(false); area.setEditable(false);
+                        }
+                    }
+                }
+                catch (NumberFormatException e) {}
+            }
+        }
+        else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
+            contentArea.setEditable(false); contentArea.setVisible(false); contentPane.setVisible(false);
+            titleArea.setEditable(false); titleArea.setVisible(false);
+            changeLevelSettings = false;
+        }
+    }
     //update function that updates everything in the panel
-    //very long method as many setttings can be changed
     public void update() throws IOException, ClassNotFoundException {
         mouse = getMousePosition(); //storing mouse position
         if (mouse == null) mouse = new Point(0,0);
@@ -617,418 +1149,55 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
         }
         //if there were multiple avatars present, the avatar settings need to be changed so that only one remains
         if (changeAvatarPrompt) {
-            if (keys[KeyEvent.VK_Y] || yesRect.contains(mouse)) { //if the user wishes to use the new avatar
-                changeAvatarPrompt = false;
-                Sprite.delete(avatarX,avatarY); //deleting old avatar sprite
-                //setting the avatar's location to the new x & y (the second sprite's values)
-                avatarX = newavatarX;
-                avatarY = newavatarY;
-                avatar = new Avatar(curSprite,avatarX,avatarY,curImage); //creating new avatar object
-                avatar.init(); //linking sprite object to avatar object
-                //putting dummy values for new avatar location, as it doesn't exist
-                newavatarY = -10;
-                newavatarX = -10;
-
-                curSprite = null;
-                curImage = null;
-                readyToPaste=true;
-            }
-            else if (keys[KeyEvent.VK_N] || noRect.contains(mouse)) {
-                changeAvatarPrompt = false;
-                //putting dummy values for new avatar location, as it doesn't exist
-                newavatarX = -10;
-                newavatarY = -10;
-                curSprite = null;
-                curImage = null;
-                readyToPaste=true;
-            }
+            avatarPromptSettings();
             return; //ensures that no other settings are being checked on top of the avatar collision
         }
-        if (changeAvatarSettings) { //if the user wanted to modify the avatar settings
-            for (int i = 0; i < avatarSettingsRects.length; i++) {
-                if (avatarSettingsRects[i].contains(mouse)) {
-                    curSetting = i; //if the user clicked on the location of the heading, the current setting changes
-                }
-            }
-            if (curSetting == SPEED) {
-                //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
-                if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
-                    for (int i = 0; i < 10; i++) {
-                        if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
-                            unsavedSpeed = i+1; //changing speed
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (curSetting == HEALTH) {
-                //checks for collisions with each of the ten options in the scroll bar graphic (within a certain range)
-                if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
-                    for (int i = 0; i < 5; i++) {
-                        if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
-                            unsavedHealth = i+1; //changing health
-                            break;
-
-                        }
-                    }
-                }
-            }
-            else if (curSetting == BULLETSPEED) {
-                //checks for collisions with each of the ten options in the scroll bar graphic (within a certain range)
-                if (Math.abs(mouse.y - (oneToTenBlocks[0].y + oneToTenBlocks[0].height/2)) < 40) {
-                    for (int i = 0; i < 10; i++) {
-                        if (Math.abs(mouse.x-(oneToTenBlocks[i].x+oneToTenBlocks[i].width/2)) < 50) {
-                            unsavedBulletSpeed = i+1; //changing bullet speed
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (curSetting == DAMAGESPRITE) {
-                //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
-                if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
-                    for (int i = 0; i < 5; i++) {
-                        if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
-                            unsavedDamage = i+1; //changing damage done by the bullet
-                            break;
-                        }
-                    }
-                }
-
-            }
-            if (yesRect.contains(mouse)) {//if the user wants to go forth with the changes
-                //setting avatar stats to the values in each of the settings menus
-                avatar.setHealth(unsavedHealth);
-                avatar.setSpeed(unsavedSpeed);
-                avatar.setBulletSpeed(unsavedBulletSpeed);
-                avatar.setDamage(unsavedDamage);
-                changeAvatarSettings = false;
-            }
-            else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                changeAvatarSettings = false;
-            }
+        if (changeAvatarSettings) {
+            avatarSettings();
             return;
         }
         if (changeEnemySettings) {
-            for (int i = 0; i < enemySettingsRects.length; i++) {
-                if (enemySettingsRects[i].contains(mouse)) {
-                    curSetting = i; //if the user clicked on the location of the heading, the current setting changes
-                }
-            }
-            if (curSetting == SPEED && !unsavedStationary) {
-                //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
-                if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
-                    for (int i = 0; i < 10; i++) {
-                        if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
-                            unsavedSpeed = i+1; //changing speed
-                            break;
-
-                        }
-                    }
-                }
-            }
-            else if (curSetting == HEALTH) {
-                //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
-                if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
-                    for (int i = 0; i < 5; i++) {
-                        if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
-                            unsavedHealth = i+1; //changing health
-                            break;
-
-                        }
-                    }
-                }
-            }
-            else if (curSetting == BULLETSPEED) {
-                //checks for collisions with each of the ten options in the scroll bar graphic (within a certain range)
-                if (Math.abs(mouse.y - (oneToTenBlocks[0].y + oneToTenBlocks[0].height/2)) < 40) {
-                    for (int i = 0; i < 10; i++) {
-                        if (Math.abs(mouse.x-(oneToTenBlocks[i].x+oneToTenBlocks[i].width/2)) < 50) {
-                            unsavedBulletSpeed = i; //changing bullet speed
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (curSetting == DAMAGESPRITE) {
-                //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
-                if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
-                    for (int i = 0; i < 5; i++) {
-                        if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
-                            unsavedDamage = i+1; //changing damage
-                            break;
-                        }
-                    }
-                }
-
-            }
-            else if (curSetting == STATIONARY) {
-                if (yesEllipse.contains(mouse)) unsavedStationary = true;
-                else if (noEllipse.contains(mouse)) unsavedStationary = false;
-
-            }
-            else if (curSetting == DIRECTION && find(enemyPlatStrings,curEnemy.getId()) == -1) {
-                if (topDown) {
-                    if (upEllipse.contains(mouse)) {
-                        unsavedDirection = Enemy.UP;
-                    }
-                    else if (downEllipse.contains(mouse)) {
-                        unsavedDirection = Enemy.DOWN;
-                    }
-                }
-                if (leftEllipse.contains(mouse)) {
-                    unsavedDirection = Enemy.LEFT;
-                }
-                else if (rightEllipse.contains(mouse)) {
-                    unsavedDirection = Enemy.RIGHT;
-                }
-            }
-
-            if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
-                curEnemy.setHealth(unsavedHealth);
-                curEnemy.setSpeed(unsavedSpeed);
-                curEnemy.setBulletSpeed(unsavedBulletSpeed);
-                curEnemy.setStationary(unsavedStationary);
-                curEnemy.setDirection(unsavedDirection);
-                curEnemy.setDamage(unsavedDamage);
-                String dir,spriteType; //strings to get image from file directory for current image displayed in the editor
-                if (topDown) spriteType = "Top-Down";
-                else spriteType = "Platform";
-                if (unsavedDirection == Enemy.RIGHT) dir = "R";
-                else if (unsavedDirection == Enemy.UP) dir = "U";
-                else if (unsavedDirection == Enemy.LEFT) dir = "L";
-                else dir = "D";
-                //loading image
-                curEnemy.getSprite().setImg(new ImageIcon(new ImageIcon(String.format("%s/%s%s0.png",spriteType,curEnemy.getId(),dir)).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH)));
-
-
-                changeEnemySettings = false;
-                curEnemy = null;
-            }
-            else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                changeEnemySettings = false;
-                curEnemy = null;
-            }
+            enemySettings();
             return;
         }
         if (changeGoalSettings) {
-            for (int i = 0; i < goalSettingsRects.length; i++) {
-                if (goalSettingsRects[i].contains(mouse)) {
-                    curSetting = i; //if the user clicked on the location of the heading, the current setting changes
-                }
-            }
-
-            if (curSetting == UNLOCK) {
-                //checks for collisions with each of the ten options in the scroll bar graphic (within a certain range)
-                for (int i = 0; i < unsavedArrPoints.length; i++) {
-                    if (Math.abs(mouse.y - (oneToFiveBlocks[i].y + oneToFiveBlocks[i].height / 2)) < 40) {
-                        if (Math.abs(mouse.x - (oneToFiveBlocks[i].x + oneToFiveBlocks[i].width / 2)) < 50) {
-                            unsavedArrPoints[i]++; //changing the digit value of the unlock requirement
-                            unsavedArrPoints[i] %= 10;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (curSetting == MASK) {
-                for (int i = 0; i < goalMasks.length; i++) {
-                    if (new Rectangle(dialogCtr-200+100*(i%4),300+100*(i/4),75,75).contains(mouse)) { //if the mask image is clicked on
-                        if (i == 0) { //the "none" option was selected
-                            unsavedMask = new ImageIcon(new ImageIcon("Block/blank.png").getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH));
-                            unsavedMaskID = "blank";
-                        }
-                        else {
-                            unsavedMask = new ImageIcon(blockSprites[i-1]);
-                            unsavedMaskID = blockStrings[i-1];
-                        }
-                    }
-                }
-            }
-            if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
-                curGoal.setMaskID(unsavedMaskID);
-                curGoal.setMask(unsavedMask);
-                //converting the digit array into a number
-                curGoal.setPointsToOpen(unsavedArrPoints[0]*10000+unsavedArrPoints[1]*1000+unsavedArrPoints[2]*100+unsavedArrPoints[3]*10+unsavedArrPoints[4]);
-                changeGoalSettings = false;
-            }
-            else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                changeGoalSettings = false;
-            }
+            goalSettings();
             return;
         }
         if (changeMessageSettings) {
-            for (int i = 0; i < messageSettingsRects.length; i++) {
-                if (messageSettingsRects[i].contains(mouse)) {
-                    curSetting = i; //if the user clicked on the location of the heading, the current setting changes
-                    //text areas need to be set visible or invisible depending on the new setting
-                    if (i == 0) {
-                        contentArea.setVisible(false); contentArea.setEditable(false); contentPane.setVisible(false);
-                        titleArea.setVisible(true); titleArea.setEditable(true);
-                    }
-                    else if (i == 1) {
-                        titleArea.setVisible(false); titleArea.setEditable(false);
-                        contentArea.setVisible(true); contentArea.setEditable(true); contentPane.setVisible(true);
-                    }
-                }
-            }
-            if (curSetting == TITLE) {
-                //removing all enters from the text area
-                titleArea.setText(titleArea.getText().replaceAll("\n",""));
-                //setting a character limit of 45
-                if (titleArea.getText().length() > 45) titleArea.setText(titleArea.getText().substring(0,45));
-            }
-
-            if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
-                changeMessageSettings = false;
-                titleArea.setVisible(false); titleArea.setEditable(false);
-                contentArea.setVisible(false); contentArea.setEditable(false); contentPane.setVisible(false);
-                curMessage.setTitle(titleArea.getText());
-                curMessage.setContent(contentArea.getText());
-            }
-            else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                changeMessageSettings = false;
-                titleArea.setVisible(false); titleArea.setEditable(false);
-                contentArea.setVisible(false); contentArea.setEditable(false); contentPane.setVisible(false);
-            }
+            messageSettings();
             return;
         }
         if (changeKeyHoleSettings) {
-            if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
-                try { //will only perform the saving if the title area text can be parsed to an integer
-                    curKeyHole.setUnlockRequirement(Integer.parseInt(titleArea.getText()));
-                    changeKeyHoleSettings = false;
-                    titleArea.setVisible(false); titleArea.setEditable(false);
-                }
-                catch (NumberFormatException e) {}
-            }
-            if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                changeKeyHoleSettings = false;
-                titleArea.setVisible(false); titleArea.setEditable(false);
-            }
+            keyHoleSettings();
             return;
         }
         if (changeSpikeSettings) {
-            //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
-            if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
-                for (int i = 0; i < 5; i++) {
-                    if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
-                        unsavedDamage = i+1; //changing the damage
-                        break;
-                    }
-                }
-            }
-            if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
-                curSpike.setDmg(unsavedDamage);
-                changeSpikeSettings = false;
-            }
-            else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                changeSpikeSettings = false;
-            }
+            spikeSettings();
             return;
         }
         if (changeCoinSettings) {
-            //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
-            if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
-                for (int i = 0; i < 5; i++) {
-                    if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
-                        unsavedPts = i+1; //setting the point value
-                        break;
-                    }
-                }
-            }
-            if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
-                curPointTotal.decrease(curCoin.getPts()); //removing the old point value from the point total
-                curCoin.setPts(unsavedPts);
-                curPointTotal.increase(curCoin.getPts()); //adding the new point value to the point total
-                changeCoinSettings = false;
-            }
-            else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                changeCoinSettings = false;
-            }
+            coinSettings();
             return;
         }
         if (changeHealthBonusSettings) {
-            //checks for collisions with each of the five options in the scroll bar graphic (within a certain range)
-            if (Math.abs(mouse.y - (oneToFiveBlocks[0].y + oneToFiveBlocks[0].height/2)) < 40) {
-                for (int i = 0; i < 5; i++) {
-                    if (Math.abs(mouse.x-(oneToFiveBlocks[i].x+oneToFiveBlocks[i].width/2)) < 50) {
-                        unsavedValue = i+1;
-                        break;
-                    }
-                }
-            }
-            if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
-                curHealthBonus.setValue(unsavedValue);
-                changeHealthBonusSettings = false;
-            }
-            else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                changeHealthBonusSettings = false;
-            }
+            healthBonusSettings();
             return;
         }
         if (changeTimeBonusSettings) {
-            titleArea.setText(titleArea.getText().replaceAll("\n",""));
-            if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
-                try { //only goes forth and saves everything if the title area text can be parsed into an integer
-                    curTimeBonus.setValue(Integer.parseInt(titleArea.getText()));
-                    changeTimeBonusSettings = false;
-                    titleArea.setVisible(false); titleArea.setEditable(false);
-                }
-                catch (NumberFormatException e) {}
-            }
-            else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                changeTimeBonusSettings = false;
-                titleArea.setVisible(false); titleArea.setEditable(false);
-            }
+            timeBonusSettings();
+            return;
         }
         if (changeKeyInsertSettings) {
-            if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
-                try { //only goes forth and saves everything if the title area text can be parsed into an integer
-                    curKeyInsert.setValue(Integer.parseInt(titleArea.getText()));
-                    changeKeyInsertSettings = false;
-                    titleArea.setVisible(false); titleArea.setEditable(false);
-                }
-                catch (NumberFormatException e) {}
-            }
-            if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                changeKeyInsertSettings = false;
-                titleArea.setVisible(false); titleArea.setEditable(false);
-            }
+            keyInsertSettings();
             return;
         }
         if (changeCountdownSettings) {
-            titleArea.setText(titleArea.getText().replaceAll("\n","")); //removing all enter characters
-            if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
-                if (titleArea.getText().charAt(2) == ':' && titleArea.getText().charAt(5) == ':' && titleArea.getText().length() == 8) { //if the input is entered in the specified manner
-                    try { //only goes forth and saves everything if the hours, minutes, and seconds can be parsed into an integer
-                        int tl = Integer.parseInt(titleArea.getText().substring(0,2))*3600+Integer.parseInt(titleArea.getText().substring(3,5))*60+Integer.parseInt(titleArea.getText().substring(6));
-                        curCountdown.setTimeLeft(titleArea.getText());
-                        changeCountdownSettings = false;
-                        titleArea.setVisible(false); titleArea.setEditable(false);
-                    }
-                    catch (NumberFormatException e) {}
-                }
-            }
-            else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                changeCountdownSettings = false;
-                titleArea.setVisible(false); titleArea.setEditable(false);
-            }
+            countdownSettings();
             return;
         }
         if (changeHealthSettings) {
-            titleArea.setText(titleArea.getText().replaceAll("\n",""));
-            if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
-                try { //only goes forth and saves everything if the title area text can be parsed into an integer
-                    curHealth.setValue(Integer.parseInt(titleArea.getText()));
-                    changeHealthSettings = false;
-                    titleArea.setVisible(false); titleArea.setEditable(false);
-                }
-                catch (NumberFormatException e) {}
-            }
-            else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                changeHealthSettings = false;
-                titleArea.setVisible(false); titleArea.setEditable(false);
-            }
+            healthSettings();
             return;
         }
         if (settingsRect.contains(mouse)) {
@@ -1048,119 +1217,11 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
 
         }
         if (changeLevelSettings) {
-            for (int i = 0; i < levelSettingsRects.length; i++) {
-                if (levelSettingsRects[i].contains(mouse)) {
-                    curSetting = i; //if the user clicked on the location of the heading, the current setting changes
-                    //setting text areas and panes to be visible or invisible depending on the current setting
-                    if (curSetting == NAME) {
-                        titleArea.setVisible(true); titleArea.setEditable(true);
-                        contentPane.setVisible(false); contentArea.setEditable(false); contentArea.setVisible(false);
-                        for (JTextArea area : rgbAreas) {
-                            area.setVisible(false); area.setEditable(false);
-                        }
-                    }
-                    else if (curSetting == DESCRIPTION) {
-                        contentPane.setVisible(true); contentArea.setEditable(true); contentArea.setVisible(true);
-                        titleArea.setVisible(false); titleArea.setEditable(false);
-                        for (JTextArea area : rgbAreas) {
-                            area.setVisible(false); area.setEditable(false);
-                        }
-                    }
-                    else if (curSetting == BACKGROUND) {
-                        titleArea.setVisible(false); titleArea.setEditable(false);
-                        contentPane.setVisible(false); contentArea.setEditable(false); contentArea.setVisible(false);
-                        if (unsavedBackground == null) {
-                            for (JTextArea area : rgbAreas) {
-                                area.setVisible(true); area.setEditable(true);
-                            }
-                        }
-                        else {
-                            for (JTextArea area : rgbAreas) {
-                                area.setVisible(false); area.setEditable(false);
-                            }
-                        }
-                    }
-                    else if (curSetting == NATURE) {
-                        titleArea.setVisible(false); titleArea.setEditable(false);
-                        contentPane.setVisible(false); contentArea.setEditable(false); contentArea.setVisible(false);
-                        for (JTextArea area : rgbAreas) {
-                            area.setVisible(false); area.setEditable(false);
-                        }
-
-                    }
-                }
-            }
-            if (curSetting == BACKGROUND) {
-                //goes through each mini background rectangle, changes the background and makes the RGB text areas invisible if it was clicked on
-                for (int i = 0; i < backgrounds.length; i++) {
-                    if (miniBackgroundsRects[i].contains(mouse)) {
-                        unsavedBackground = new ImageIcon(backgrounds[i]); 
-                        for (JTextArea area : rgbAreas) {
-                            area.setVisible(false);
-                            area.setEditable(false);
-                        }
-                    }
-                }
-                if (miniBackgroundsRects[backgrounds.length].contains(mouse)) { //if the custom color option was clicked on
-                    unsavedBackground = null;
-                    for (JTextArea area : rgbAreas) {
-                        area.setVisible(true);
-                        area.setEditable(true);
-                    }
-                }
-            }
-            if (curSetting == NATURE) {
-                if (topDownRect.contains(mouse)) {
-                    topDown = true;
-                    Sprite.clear(); //removes all sprites that are incompatible (avatar and enemy)
-                }
-                else if (platformRect.contains(mouse)) {
-                    topDown = false;
-                    Sprite.clear(); //removes all sprites that are incompatbiel (avatar and enemy)
-                }
-            }
-            if (yesRect.contains(mouse)) { //if the user wants to go forth with the changes
-                if (unsavedBackground != null) { //if the background is chosen to be an iamge
-                    levelBackground = unsavedBackground;
-                    backgroundColor = null;
-                    contentArea.setEditable(false); contentArea.setVisible(false); contentPane.setVisible(false);
-                    titleArea.setEditable(false); titleArea.setVisible(false);
-                    levelDescription = contentArea.getText();
-                    levelName = titleArea.getText();
-                    changeLevelSettings = false;
-                    for (JTextArea area : rgbAreas) {
-                        area.setVisible(false); area.setEditable(false);
-                    }
-                }
-                else { //if the background is chosen to be a color
-                    try {
-                        int redValue = Integer.parseInt(rgbAreas[0].getText()),greenValue = Integer.parseInt(rgbAreas[1].getText()),blueValue = Integer.parseInt(rgbAreas[2].getText());
-                        if (redValue >= 0 && redValue <= 255 && greenValue >= 0 && greenValue <= 255 && blueValue >= 0 && blueValue <= 255) {
-                            levelBackground = null;
-                            backgroundColor = new Color(redValue,greenValue,blueValue);
-                            contentArea.setEditable(false); contentArea.setVisible(false); contentPane.setVisible(false);
-                            titleArea.setEditable(false); titleArea.setVisible(false);
-                            levelDescription = contentArea.getText();
-                            levelName = titleArea.getText();
-                            changeLevelSettings = false;
-                            for (JTextArea area : rgbAreas) {
-                                area.setVisible(false); area.setEditable(false);
-                            }
-                        }
-                    }
-                    catch (NumberFormatException e) {}
-                }
-            }
-            else if (noRect.contains(mouse)) { //if the user wants to revert the changes to the old ones
-                contentArea.setEditable(false); contentArea.setVisible(false); contentPane.setVisible(false);
-                titleArea.setEditable(false); titleArea.setVisible(false);
-                changeLevelSettings = false;
-            }
+            levelSettings();
             return;
         }
         if (saveRect.contains(mouse) && numGoals > 0 && avatar != null) {
-
-            OutputStream file = new FileOutputStream(String.format("%s.txt",levelName),false); //loading file, setting it to overwrite
+            OutputStream file = new FileOutputStream(String.format("Games/%s.txt",levelName),false); //loading file, setting it to overwrite
             ObjectOutputStream outStream = new ObjectOutputStream(file); //creating an object output stream for serialization
             //writing objects to file
             outStream.writeObject(topDown);
@@ -1195,6 +1256,7 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
             }
             file.close();
             outStream.close();
+            mainFrame.switchPanel(mainFrame.SELECTPANEL);
         }
         //changing the current menu type to display that type of sprite
         if (avatarRect.contains(mouse)) curType = AVATAR;
@@ -1966,7 +2028,6 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
             paintX = 250;
             for (int i = 0; i < avatarSettingsRects.length; i++) { //runs thru for all headers
                 avatarSettingsRects[i] = new Rectangle(paintX,250, g.getFontMetrics().stringWidth(avatarSettings[i])+20,50); //creating the rectangle used for collision detection for headers
-                //System.out.println(g.getFontMetrics().stringWidth(avatarSettings[i]));
                 paintX += avatarSettingsRects[i].width + 10;
             }
 
@@ -1974,7 +2035,6 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
             paintX = 250;
             for (int i = 0; i < enemySettingsRects.length; i++) { //runs thru for all headers
                 enemySettingsRects[i] = new Rectangle(paintX,250, g.getFontMetrics().stringWidth(enemySettings[i])+20,50); //creating the rectangle used for collision detection for headers
-                //System.out.println(g.getFontMetrics().stringWidth(avatarSettings[i]));
                 paintX += enemySettingsRects[i].width + 10;
             }
 
@@ -2261,11 +2321,23 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
                 //drawing the denominator of the fraction of remaining/initial health
                 g.drawString(String.format("%d",curHealth.getValue()),ctrPosition(new Rectangle(healthRect.x+80,healthRect.y+37,healthRect.width-80,38),String.format("%d",curHealth.getValue()),g),healthRect.y+healthRect.height+15);
             }
-            if (saveRect.contains(mouse))
+            if (saveRect.contains(mouse)) {
                 g.setColor(TRANSPARENTRED);
-            else
+                g.fillRect(saveRect.x,saveRect.y,saveRect.width,saveRect.height);
+                g.setColor(Color.BLACK);
+                g.setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,25));
+                if (numGoals == 0) {
+                    g.drawString("Need at least one goal!",spritesRect.x,spritesRect.y+spritesRect.height+30);
+                }
+                if (avatar == null) {
+                    g.drawString("Need an avatar!",spritesRect.x,spritesRect.y+spritesRect.height+60);
+                }
+            }
+
+            else {
                 g.setColor(TRANSPARENTGREEN);
-            g.fillRect(saveRect.x,saveRect.y,saveRect.width,saveRect.height);
+                g.fillRect(saveRect.x, saveRect.y, saveRect.width, saveRect.height);
+            }
             g.setColor(Color.BLACK);
             g.drawRect(saveRect.x,saveRect.y,saveRect.width,saveRect.height);
             g.setFont(new Font("System San Francisco Display Regular.ttf",Font.TRUETYPE_FONT,60));

@@ -823,6 +823,13 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
                 }
             }
             for (Sprite sprite : enemies) {
+                if (((Enemy) sprite.instance).isStationary()) continue;
+                if (!checkTopDown(sprite, ((Enemy) sprite.instance).getDirection())) { //reverses the enemy's direction if something is in their way
+                    ((Enemy) sprite.instance).setDirection((((Enemy) sprite.instance).getDirection() + 2) % 4);
+                }
+                topDownMove(((Enemy) sprite.instance).getDirection(), sprite); //moves the enemy
+            }
+            for (Sprite sprite : enemies) {
                 Enemy enemy = (Enemy) sprite.instance;
                 if (!enemy.isOnGround()) {
                     enemy.setVelocityY(enemy.getVelocityY() + GRAVITY); //changing the velocity of the enemy, v2 = v1 + at
@@ -848,6 +855,21 @@ public class LevelPanel extends JPanel implements KeyListener,MouseListener {
                     }
                 }
                 else {
+                    Line2D enemyBorderUp = new Line2D.Double(enemy.hitBox.x,enemy.hitBox.y,enemy.hitBox.x+enemy.hitBox.width,enemy.hitBox.y),
+                            enemyBorderDown = new Line2D.Double(enemy.hitBox.x,enemy.hitBox.y+enemy.hitBox.height,enemy.hitBox.x+enemy.hitBox.width,enemy.hitBox.y+enemy.hitBox.height),
+                            enemyBorderLeft = new Line2D.Double(enemy.hitBox.x,enemy.hitBox.y,enemy.hitBox.x,enemy.hitBox.y+enemy.hitBox.height),
+                            enemyBorderRight = new Line2D.Double(enemy.hitBox.x+enemy.hitBox.width,enemy.hitBox.y,enemy.hitBox.x+enemy.hitBox.width,enemy.hitBox.y+enemy.hitBox.height);
+
+                    boolean interWithSprite = false;
+                    for (Sprite sp : moveRestrictions) { //checking to see if the avatar is really standing on a block
+                        if (sp.hitBox.intersectsLine(enemyBorderDown)) {
+                            interWithSprite = true;
+                            break;
+                        }
+                    }
+                    if (!interWithSprite) { //ensures that the only sprites to be on ground are those that actually stand on something
+                        onGround = false;
+                    }
                     if (enemy.incJumpTimer()) { //if the enemy has waited long enough since last jump, it will jump
                         enemy.setVelocityY(enemy.getInitialVelocityY());
                         enemy.setOnGround(false);

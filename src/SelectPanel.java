@@ -1,3 +1,10 @@
+/*
+SelectPanel.java
+Sat Arora
+Class that holds the simple interface of playing or editing a level.
+ */
+
+//importing packages
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -8,19 +15,19 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class SelectPanel extends JPanel implements MouseListener {
-    private App mainFrame;
-    private Image plus, plusClicked;
-    private Ellipse2D.Double plusEllipse;
+    private App mainFrame; //storing the frame
+    private Image plus, plusClicked; //images for clicking on the plus button to add a new level
+    private Ellipse2D.Double plusEllipse; //collision with plus button
     private Font font15, font25, font30, font25Bold, font45, font45Bold, font60; //different font sizes
-    private String welcome;
-    private String description;
-    private ArrayList<FileData> fileDataArrayList;
-    private Rectangle[] dataRects;
+    private String welcome; //welcome text
+    private String description; //description text
+    private ArrayList<FileData> fileDataArrayList; //arraylist of all text files that can be converted to games or to be edited
+    private Rectangle[] dataRects; //rectangle array storing the locations of the options of the games to play
     public static final Color LIGHTGREEN = new Color(144,238,144);
     private boolean mouseOn;
-    private int clickedIdx;
+    private int clickedIdx; //the index of the option that was clicked on
     private Rectangle playRect, editRect, cancelRect;
-
+    //contsructor
     public SelectPanel(App a) throws IOException {
         setLayout(null);
         mainFrame = a;
@@ -39,9 +46,10 @@ public class SelectPanel extends JPanel implements MouseListener {
         description = "Click on a level to edit it. Otherwise, click on the plus icon to add a new level!";
         clickedIdx = -1;
         fileDataArrayList = new ArrayList<>();
+        //opening file
         File gamesFolder = new File("Games");
-        if (gamesFolder.isDirectory()) {
-            for (File file : gamesFolder.listFiles()) {
+        if (gamesFolder.isDirectory()) { //checking if the Games is a folder directory
+            for (File file : gamesFolder.listFiles()) { //opening all files, storing them
                 fileDataArrayList.add(new FileData(file,file.getName()));
             }
         }
@@ -55,6 +63,7 @@ public class SelectPanel extends JPanel implements MouseListener {
         Point mouse = getMousePosition();
         if (mouse == null) mouse = new Point(0,0);
         if (clickedIdx != -1) {
+            //options for cancel, play, edit
             if (cancelRect.contains(mouse)) {
                 clickedIdx = -1;
             }
@@ -65,6 +74,10 @@ public class SelectPanel extends JPanel implements MouseListener {
                 mainFrame.switchPanel(mainFrame.EDITPANEL);
             }
             return;
+        }
+        if (plusEllipse.contains(mouse)) { //adding new level, goes to editor
+            clickedIdx = -1;
+            mainFrame.switchPanel(mainFrame.EDITPANEL);
         }
         for (int i = 0; i < dataRects.length; i++) {
             if (dataRects[i].contains(mouse)) {
@@ -79,19 +92,20 @@ public class SelectPanel extends JPanel implements MouseListener {
         Point mouse = getMousePosition();
         if (mouse == null) mouse = new Point(0,0);
         g.setColor(LIGHTGREEN);
-        g.fillRect(0,0,getWidth(),getHeight());
+        g.fillRect(0,0,getWidth(),getHeight()); //background light green
         g.setFont(font45Bold);
         g.setColor(Color.BLACK);
-        g.drawString(welcome,EditPanel.ctrPosition(this.getBounds(),welcome,g),100);
+        g.drawString(welcome,EditPanel.ctrPosition(this.getBounds(),welcome,g),100); //drawing the header (welcome)
         g.setFont(font30);
-        g.drawString(description,EditPanel.ctrPosition(this.getBounds(),description,g),140);
+        g.drawString(description,EditPanel.ctrPosition(this.getBounds(),description,g),140); //drawing the instructions/description
         g.setFont(font25Bold);
-        if (clickedIdx != -1) {
+        if (clickedIdx != -1) { //one of the games has been clicked
             g.setColor(new Color(0,0,0,100));
-            g.fillRect(0,0,getWidth(),getHeight());
+            g.fillRect(0,0,getWidth(),getHeight()); //shading in background
             g.setColor(Color.WHITE);
-            g.fillRect(400,300,400,270);
+            g.fillRect(400,300,400,270); //showing pop up
             g.setColor(Color.BLACK);
+            //drawing the three options (cancel, edit, play)
             if (playRect.contains(mouse)) {
                 g.setColor(Color.GREEN);
                 g.fillRect(playRect.x,playRect.y,playRect.width,playRect.height);
@@ -120,14 +134,14 @@ public class SelectPanel extends JPanel implements MouseListener {
             Rectangle r = dataRects[i];
             if (r.contains(mouse)) {
                 g.setColor(Color.PINK);
-                g.fillRect(r.x,r.y,r.width,r.height);
+                g.fillRect(r.x,r.y,r.width,r.height); //drawing the rectangle around the level name
                 g.setColor(Color.BLACK);
             }
             FileData fileData = fileDataArrayList.get(i);
             g.drawRect(r.x,r.y,r.width,r.height);
-            g.drawString(fileData.getFname(),r.x+5,r.y+25);
+            g.drawString(fileData.getFname().substring(0,fileDataArrayList.get(i).getFname().length()-4),r.x+5,r.y+25); //drawing level name
         }
-
+        //plus button color depending on whether the mouse is on top of the button
         if (plusEllipse.contains(mouse)) {
             g.drawImage(plusClicked,(int)plusEllipse.x,(int)plusEllipse.y,null);
         }
@@ -141,7 +155,8 @@ public class SelectPanel extends JPanel implements MouseListener {
         int paintX = 100, paintY = 200;
         g.setFont(font25Bold);
         for (int i = 0; i < dataRects.length; i++) {
-            dataRects[i] = new Rectangle(paintX,paintY,g.getFontMetrics().stringWidth(fileDataArrayList.get(i).getFname())+10,35);
+            //creating rectangle bounds around game name
+            dataRects[i] = new Rectangle(paintX,paintY,g.getFontMetrics().stringWidth(fileDataArrayList.get(i).getFname().substring(0,fileDataArrayList.get(i).getFname().length()-4))+10,35);
             paintY += 50;
         }
         g.setFont(font25);
@@ -165,7 +180,9 @@ public class SelectPanel extends JPanel implements MouseListener {
             ex.printStackTrace();
         }
     }
+    //method that gets the current file chosen to either play or edit (returns null if nothing was chosen)
     public File getFile() {
-        return fileDataArrayList.get(clickedIdx).getFile();
+        if (clickedIdx != -1) return fileDataArrayList.get(clickedIdx).getFile();
+        return null;
     }
 }

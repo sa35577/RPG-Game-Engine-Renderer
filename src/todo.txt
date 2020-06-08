@@ -1,3 +1,0 @@
-TODO
--Collision with top-down for platform, prevent going out of screen or into blocks
--Enemy Collision

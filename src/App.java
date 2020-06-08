@@ -57,7 +57,10 @@ public class App extends JFrame {
             if (containsEdit) {
                 panelManager.remove(edit); //removing old edit, outdated
             }
-            edit = new EditPanel(this,select.getFile()); //getting the new edit panel
+            if (select.getFile() != null)
+                edit = new EditPanel(this,select.getFile()); //getting the new edit panel
+            else
+                edit = new EditPanel(this);
             panelManager.add(edit,EDITPANEL); //putting new edit panel into the panel manager
         }
         else if (targetPanel.equals("level")) {
