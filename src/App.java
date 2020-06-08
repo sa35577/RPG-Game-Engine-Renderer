@@ -1,3 +1,10 @@
+/*
+App.java
+Sat Arora
+Main Frame class that runs 3 panels with a card layout.
+ */
+
+//importing packages
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -7,28 +14,25 @@ import java.io.File;
 import java.io.IOException;
 
 public class App extends JFrame {
-    // Declaring constants
+    // string constants
     public static final String EDITPANEL = "edit";
     public static final String LEVELPANEL = "level";
     public static final String SELECTPANEL = "select";
-    // Declaring fields
+    //panels used
     private EditPanel edit;
     private LevelPanel level;
     private SelectPanel select;
+    //help manage the cardlayout
     private JPanel panelManager;
     private String activePanel;
     private Timer myTimer; // Timer to call the game functions each frame
     public App() throws IOException, ClassNotFoundException {
         super("Gamestar Mechanic");
-        myTimer = new Timer(10, new TickListener());	 // trigger every 10 ms
-        //edit = new EditPanel(this);
-        //level = new LevelPanel(this);
+        myTimer = new Timer(10, new TickListener());// trigger every 10 ms
         select = new SelectPanel(this);
         panelManager = new JPanel(new CardLayout());
 
         // Setting up the CardLayout in panelManager
-        //panelManager.add(edit, EDITPANEL);
-        //panelManager.add(level, LEVELPANEL);
         panelManager.add(select, SELECTPANEL);
         switchPanel(SELECTPANEL);
         setResizable(false);
@@ -38,11 +42,10 @@ public class App extends JFrame {
         Image icon = ImageIO.read(new File("richman.jpeg"));
         setIconImage(icon);
         setVisible(true);
-        // Starting a timer to update the frames
-
-
     }
+    //switching the panels throughout the app, taking in the target string that is linked with the panel
     public void switchPanel(String targetPanel) throws IOException, ClassNotFoundException {
+        //the edit or level panels need to be the most updated versions, so they are deleted (if they exist) and then re-added to the panel manager every time
         Component[] cpts = panelManager.getComponents();
         boolean containsLevel = false, containsEdit = false;
         for (Component cpt : cpts) {
@@ -52,18 +55,18 @@ public class App extends JFrame {
         if (targetPanel.equals("edit")) {
             setSize(1920,1080);
             if (containsEdit) {
-                panelManager.remove(edit);
+                panelManager.remove(edit); //removing old edit, outdated
             }
-            edit = new EditPanel(this,select.getFile());
-            panelManager.add(edit,EDITPANEL);
+            edit = new EditPanel(this,select.getFile()); //getting the new edit panel
+            panelManager.add(edit,EDITPANEL); //putting new edit panel into the panel manager
         }
         else if (targetPanel.equals("level")) {
             setSize(1200,900);
             if (containsLevel) {
-                panelManager.remove(level);
+                panelManager.remove(level); //removing old level, outdated
             }
-            level = new LevelPanel(this,select.getFile());
-            panelManager.add(level,LEVELPANEL);
+            level = new LevelPanel(this,select.getFile()); //getting the new level panel
+            panelManager.add(level,LEVELPANEL); //putting new level panel into the panel manage
         }
         else {
             setSize(1200, 900);
@@ -98,11 +101,10 @@ public class App extends JFrame {
         }
     }
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        System.setProperty("sun.java2d.opengl", "True");
+        System.setProperty("sun.java2d.opengl", "True"); //used to make panel manager slightly faster (was advised by a friend to do this)
         App game = new App();
     }
     public void start() {
         myTimer.start();
-
     }
 }
