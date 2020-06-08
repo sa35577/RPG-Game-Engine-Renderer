@@ -25,6 +25,6 @@ public class KeyHole extends Sprite implements Serializable {
     //getters and setters
     public int getUnlockRequirement() { return unlockRequirement; }
     public void setUnlockRequirement(int unlockRequirement) { this.unlockRequirement = unlockRequirement; }
-    public int getColor() { return color; }
+    public int getColor() { return color+9; }
     public void setColor(int color) { this.color = color; }
 }

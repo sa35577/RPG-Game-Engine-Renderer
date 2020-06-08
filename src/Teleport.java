@@ -46,7 +46,7 @@ public class Teleport extends Sprite implements Serializable {
     }
     //checks if the accessed Teleport is an entry teleport
     public boolean isEntry() {
-        return exitTeleport == null;
+        return exitTeleport != null;
     }
 
 

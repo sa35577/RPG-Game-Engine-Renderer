@@ -10,6 +10,7 @@ import java.awt.*;
 import java.io.Serializable;
 
 public class KeyInsert extends Sprite implements Serializable {
+    private static final long serialVersionUID = 7566611002601033239L;
     public static final int GREEN = 0, RED = 1; //color ints
     private int value; //how much the key increases the total key count
     private int color; //color of key
@@ -25,5 +26,6 @@ public class KeyInsert extends Sprite implements Serializable {
     public int getValue() { return value; }
     public void setValue(int value) { this.value = value; }
     public int getColor() { return color; }
+    public int getGameColor() { return color + 4; }
     public void setColor(int color) { this.color = color; }
 }
