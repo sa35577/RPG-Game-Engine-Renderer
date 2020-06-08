@@ -7,7 +7,7 @@ import java.awt.event.*;
 import java.io.IOException;
 import javax.swing.*;
 import javax.swing.Timer;
-public class Level extends JFrame implements ActionListener {
+public class Level {}/*extends JFrame implements ActionListener {
     Timer myTimer;
     LevelPanel lvl;
     public Level() throws IOException, ClassNotFoundException {
@@ -36,4 +36,4 @@ public class Level extends JFrame implements ActionListener {
             lvl.repaint();
         }
     }
-}
+}*/

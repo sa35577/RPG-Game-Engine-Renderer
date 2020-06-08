@@ -18,7 +18,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class EditPanel extends JPanel implements MouseListener, KeyListener, java.io.Serializable {
-    private Edit mainFrame; //storing the frame
+    private App mainFrame; //storing the frame
     private Image coolBack; //background of the edit panel
     public static Image[] systemSprites,itemSprites,blockSprites,playerPlatSprites,enemyPlatSprites,playerTopDownSprites,enemyTopDownSprites; //loading sprites
     public static String[] systemStrings,itemStrings,blockStrings,playerPlatStrings,enemyPlatStrings,playerTopDownStrings,enemyTopDownStrings; //names of sprites in the image files, easier to load
@@ -130,10 +130,13 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
     private Rectangle topDownRect,platformRect; //rectangles for collision of the platform/top down setting
     private Rectangle saveRect; //rectangle for the save button
 
+    private FileInputStream file;
+    private ObjectInputStream inputStream;
+
     //constructor
-    public EditPanel(Edit e) {
+    public EditPanel(App a) {
         this.setLayout(null);
-        mainFrame = e;
+        mainFrame = a;
         addMouseListener(this);
         addKeyListener(this);
         avatarRect = new Rectangle(40,250,60,30);
@@ -334,6 +337,256 @@ public class EditPanel extends JPanel implements MouseListener, KeyListener, jav
         yesEllipse = new Ellipse2D.Double(upEllipse.x,upEllipse.y,upEllipse.width,upEllipse.height);
         noEllipse = new Ellipse2D.Double(downEllipse.x,downEllipse.y,downEllipse.width,downEllipse.height);
     }
+    //constructor, given file
+    public EditPanel(App a, File filePath) throws IOException, ClassNotFoundException {
+        this.setLayout(null);
+        mainFrame = a;
+        addMouseListener(this);
+        addKeyListener(this);
+        avatarRect = new Rectangle(40,250,60,30);
+        enemyRect = new Rectangle(100,250,60,30);
+        blockRect = new Rectangle(160,250,60,30);
+        itemRect = new Rectangle(220,250,60,30);
+        systemRect = new Rectangle(280,250,60,30);
+        spritesRect = new Rectangle(40,300,300,300);
+        coolBack = new ImageIcon("scroll.png").getImage().getScaledInstance(1920,1080, Image.SCALE_SMOOTH);
+        systemStrings = new String[]{"clock","score","health","frag"};
+        systemSprites = new Image[4];
+        for (int i = 0; i < 4; i++) {
+            systemSprites[i] = new ImageIcon(String.format("System/%s.png",systemStrings[i])).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
+        }
+
+        itemStrings = new String[]{"point","bonuspoint","healthpack","timerbonus","greenkey","redkey"};
+        itemSprites = new Image[6];
+        for (int i = 0; i < 6; i++) {
+            itemSprites[i] = new ImageIcon(String.format("Item/%s.png",itemStrings[i])).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
+        }
+
+        playerPlatStrings = new String[]{"hero","peng","pjump"};
+        playerPlatSprites = new Image[3];
+        for (int i = 0; i < 3; i++) {
+            playerPlatSprites[i] = new ImageIcon(String.format("Platform/%sR0.png",playerPlatStrings[i])).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
+        }
+
+        enemyPlatStrings = new String[]{"ache","kara","poun"};
+        enemyPlatSprites = new Image[3];
+        for (int i = 0; i < 3; i++) {
+            enemyPlatSprites[i] = new ImageIcon(String.format("Platform/%sR0.png",enemyPlatStrings[i])).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
+        }
+
+        playerTopDownStrings = new String[]{"blue","pfast","psnipe"};
+        playerTopDownSprites = new Image[3];
+        for (int i = 0; i < 3; i++) {
+            playerTopDownSprites[i] = new ImageIcon(String.format("Top-Down/%sR0.png",playerTopDownStrings[i])).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
+        }
+
+        enemyTopDownStrings = new String[]{"red","reg","sniper","tank"};
+        enemyTopDownSprites = new Image[4];
+        for (int i = 0; i < 4; i++) {
+            enemyTopDownSprites[i] = new ImageIcon(String.format("Top-Down/%sR0.png",enemyTopDownStrings[i])).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
+        }
+
+        blockStrings = new String[]{"cement","cloud","dirt","glass","gold","grass","goal","hiddenGoal",
+                "message","greenLock","redLock","spike","teleportIn"};
+        blockSprites = new Image[13];
+        for (int i = 0; i < 13; i++) {
+            blockSprites[i] = new ImageIcon(String.format("Block/%s.png",blockStrings[i])).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
+        }
+
+        curType = AVATAR;
+        title = new ImageIcon("title.png").getImage();
+        font = new Font("System San Francisco Display Regular.ttf",Font.BOLD,15);
+        toolStrings = new String[]{"mouse","tool","delete"};
+        toolImages = new Image[3]; toolClickedImages = new Image[3];
+        toolEllipses = new Ellipse2D.Double[3];
+        for (int i = 0; i < 3; i++) {
+            toolImages[i] = new ImageIcon(String.format("Tools/%sIcon.png",toolStrings[i])).getImage().getScaledInstance(100,100,Image.SCALE_SMOOTH);
+            toolClickedImages[i] = new ImageIcon(String.format("Tools/%sClickedIcon.png",toolStrings[i])).getImage().getScaledInstance(100,100,Image.SCALE_SMOOTH);
+            toolEllipses[i] = new Ellipse2D.Double(1750,300+125*i,100,100);
+        }
+        curImage = null;
+        curSprite = null;
+        readyToPaste = false;
+        gameRect = new Rectangle(500,150,1200,750);
+        isAvatar = false;
+        containsAvatar = false;
+        changeAvatarPrompt = false;
+        //dummy values for avatar location
+        avatarX = -10;
+        avatarY = -10;
+        newavatarX = -10;
+        newavatarY = -10;
+        readyToDelete=false;
+        readyToModify = false;
+        keys = new boolean[KeyEvent.KEY_LAST+1];
+        promptBack = new ImageIcon("promptBlock.png").getImage().getScaledInstance(1720,880, Image.SCALE_SMOOTH);
+        buttonImage = new ImageIcon("button.png").getImage().getScaledInstance(250,110, Image.SCALE_SMOOTH);
+        buttonClickedImage = new ImageIcon("buttonClicked.png").getImage().getScaledInstance(250,110, Image.SCALE_SMOOTH);
+        yesRect = new Rectangle(mainFrame.getWidth()/2-250,850,250,110);
+        noRect = new Rectangle(mainFrame.getWidth()/2+50,850,250,110);
+        avatar = null;
+        curEnemy = null;
+        curGoal = null;
+        changeAvatarSettings = false;
+        changeEnemySettings = false;
+        changeGoalSettings = false;
+        changeMessageSettings = false;
+        changeKeyHoleSettings = false;
+        changeSpikeSettings = false;
+        curSetting = 0;
+        oneToTenBlocks = new Rectangle[10];
+        oneToFiveBlocks = new Rectangle[5];
+        for (int i = 0; i < 10; i++) {
+            oneToTenBlocks[i] = new Rectangle(150*i+250,500,50,50);
+        }
+        for (int i = 0; i < 5; i++) {
+            oneToFiveBlocks[i] = new Rectangle(250+337*i,500,50,50);
+        }
+        titleArea = new JTextArea();
+        titleArea.setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,60));
+        titleArea.setBackground(new Color(0,0,0,0));
+        titleArea.setBounds(430,350,1000,200);
+        titleArea.setWrapStyleWord(true);
+        titleArea.setLineWrap(true);
+        titleArea.setVisible(false);
+        titleArea.setEditable(false);
+        titleArea.addKeyListener(this);
+        add(titleArea);
+
+        curMessage = null;
+        contentArea = new JTextArea();
+
+        contentArea.setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,25));
+        contentArea.setBackground(new Color(0,0,0,0));
+        contentArea.setBounds(250,300,1400,500);
+        contentArea.setWrapStyleWord(true);
+        contentArea.setLineWrap(true);
+        contentArea.setVisible(false);
+        contentArea.setEditable(false);
+
+        contentPane = new JScrollPane(contentArea,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        contentPane.setBackground(contentArea.getBackground());
+        contentPane.setVisible(false);
+        contentPane.setBounds(contentArea.getBounds());
+        contentPane.addKeyListener(this);
+        add(contentPane);
+
+        curKeyHole = null;
+        curSpike = null;
+        curCoin = null;
+        curHealthBonus = null;
+        curCountdown = null;
+        countDownRect = null;
+        changeCountdownSettings = false;
+        curPointTotal = null;
+        curHealth = null;
+        changeHealthSettings = false;
+        healthRect = null;
+
+        left = new ImageIcon("left.png").getImage();
+        right = new ImageIcon("right.png").getImage();
+        up = new ImageIcon("up.png").getImage();
+        down = new ImageIcon("down.png").getImage();
+        offX = 0; offY = 0;
+        upRect = new Rectangle(gameRect.x - 50,gameRect.y,40,40);
+        downRect = new Rectangle(gameRect.x - 50,gameRect.y + gameRect.height - 40,40,40);
+        leftRect = new Rectangle(gameRect.x,gameRect.y - 50,40,40);
+        rightRect = new Rectangle(gameRect.x + gameRect.width - 40,gameRect.y - 50,40,40);
+
+        changeLevelSettings = false;
+        topDown = true;
+        levelBackground = null;
+        levelName = "Level 1";
+        levelDescription = "";
+        levelSettings = new String[]{"Name","Description","Background","Nature"};
+        unsavedBackground = null;
+        backgroundColor = new Color(0,0,0);
+        unsavedBackgroundColor = null;
+        backgroundStrings = new String[]{"Beach","City","Forest","Nebula Aqua-Pink",
+                "Nebula Blue","Nebula Red","Ocean","Underwater"};
+        backgrounds = new Image[backgroundStrings.length];
+        miniBackgrounds = new Image[backgroundStrings.length];
+        miniBackgroundsRects = new Rectangle[backgroundStrings.length+1];
+        for (int i = 0; i < backgrounds.length; i++) {
+            backgrounds[i] = new ImageIcon(String.format("Backgrounds/%s.png",backgroundStrings[i])).getImage().getScaledInstance(gameRect.width,gameRect.height,Image.SCALE_SMOOTH);
+            miniBackgroundsRects[i] = new Rectangle(350+250*(i%4),350+170*(i/4),250,160);
+            miniBackgrounds[i] = new ImageIcon(String.format("Backgrounds/%s.png",backgroundStrings[i])).getImage().getScaledInstance(miniBackgroundsRects[i].width,miniBackgroundsRects[i].height,Image.SCALE_SMOOTH);
+        }
+        miniBackgroundsRects[backgroundStrings.length] = new Rectangle(350+250*(backgroundStrings.length%4),350+170*(backgroundStrings.length/4),1000,100);
+
+        rgbAreas = new JTextArea[3];
+        for (int i = 0; i < 3; i++) {
+            rgbAreas[i] = new JTextArea();
+            rgbAreas[i].setFont(new Font("System San Francisco Display Regular.ttf",Font.BOLD,30));
+            rgbAreas[i].setBackground(new Color(0,0,0,0));
+            rgbAreas[i].setBounds(1500+30,350+100*i,80,40);
+            rgbAreas[i].setWrapStyleWord(true);
+            rgbAreas[i].setLineWrap(true);
+            rgbAreas[i].setVisible(false);
+            rgbAreas[i].setEditable(false);
+            rgbAreas[i].addKeyListener(this);
+            add(rgbAreas[i]);
+        }
+        previewColorRect = new Rectangle(1500,700,100,100);
+        topDownRect = new Rectangle(350,500,400,200);
+        platformRect = new Rectangle(1100,500,400,200);
+        saveRect = new Rectangle(1750,0,1920-1750,100);
+        teleportOutID = "teleportOut";
+        teleportOut = new ImageIcon(String.format("Block/%s.png",teleportOutID)).getImage().getScaledInstance(75,75,Image.SCALE_SMOOTH);
+
+        upEllipse = new Ellipse2D.Double(350,350,100,100);
+        downEllipse = new Ellipse2D.Double(650,350,100,100);
+        leftEllipse = new Ellipse2D.Double(350,650,100,100);
+        rightEllipse = new Ellipse2D.Double(650,650,100,100);
+        yesEllipse = new Ellipse2D.Double(upEllipse.x,upEllipse.y,upEllipse.width,upEllipse.height);
+        noEllipse = new Ellipse2D.Double(downEllipse.x,downEllipse.y,downEllipse.width,downEllipse.height);
+
+        //deserialization, lots of trial and error to perfect this
+        file = new FileInputStream(filePath);
+        inputStream = new ObjectInputStream(file);
+        topDown = (boolean)inputStream.readObject();
+        Object obj = inputStream.readObject();
+        if (obj instanceof Color) {
+            backgroundColor = (Color)obj;
+            levelBackground = null;
+        }
+        else if (obj instanceof ImageIcon) {
+            levelBackground = ((ImageIcon) obj);
+            backgroundColor = null;
+        }
+        levelName = (String)inputStream.readObject();
+        levelDescription = (String)inputStream.readObject();
+        obj = inputStream.readObject();
+        //countdown, health, and point total are not necessarily included in the level; if statements prevent the data from being passed to the wrong class
+        if (obj instanceof Countdown) {
+            curCountdown = (Countdown) obj;
+            obj = inputStream.readObject();
+        }
+        if (obj instanceof Health) {
+            curHealth = (Health) obj;
+            obj = inputStream.readObject();
+        }
+        if (obj instanceof PointTotal) {
+            curPointTotal = (PointTotal) obj;
+            curPointTotal.setCur(0);
+            try {
+                obj = inputStream.readObject();
+            }
+            catch (InvalidClassException | ClassNotFoundException ex) {}
+        }
+        while (true) {
+            Sprite nxt = (Sprite) obj;
+            Sprite.put(nxt);
+            try {
+                obj = inputStream.readObject();
+            }
+            catch (EOFException ex) {
+                break;
+            }
+        }
+    }
+
+
     public void addNotify() {
         super.addNotify();
         requestFocus();

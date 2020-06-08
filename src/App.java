@@ -18,19 +18,19 @@ public class App extends JFrame {
     private JPanel panelManager;
     private String activePanel;
     private Timer myTimer; // Timer to call the game functions each frame
-    private int runTime; // Variable to keep track of the milliseconds that have passed since the start of the game
-    public App() throws IOException {
+    public App() throws IOException, ClassNotFoundException {
         super("Gamestar Mechanic");
-        edit = new EditPanel(this);
-        level = new LevelPanel(this);
+        myTimer = new Timer(10, new TickListener());	 // trigger every 10 ms
+        //edit = new EditPanel(this);
+        //level = new LevelPanel(this);
         select = new SelectPanel(this);
         panelManager = new JPanel(new CardLayout());
+
         // Setting up the CardLayout in panelManager
-        panelManager.add(edit, EDITPANEL);
-        panelManager.add(level, LEVELPANEL);
+        //panelManager.add(edit, EDITPANEL);
+        //panelManager.add(level, LEVELPANEL);
         panelManager.add(select, SELECTPANEL);
-        switchPanel(EDITPANEL);
-        setSize(1920,1080);
+        switchPanel(SELECTPANEL);
         setResizable(false);
         setLocationRelativeTo(null);
         add(panelManager);
@@ -39,13 +39,38 @@ public class App extends JFrame {
         setIconImage(icon);
         setVisible(true);
         // Starting a timer to update the frames
-        myTimer = new Timer(10, new TickListener());	 // trigger every 10 ms
-        myTimer.start();
+
 
     }
-    public void switchPanel(String targetPanel){
+    public void switchPanel(String targetPanel) throws IOException, ClassNotFoundException {
+        Component[] cpts = panelManager.getComponents();
+        boolean containsLevel = false, containsEdit = false;
+        for (Component cpt : cpts) {
+            if (cpt instanceof LevelPanel) containsLevel = true;
+            else if (cpt instanceof EditPanel) containsEdit = true;
+        }
+        if (targetPanel.equals("edit")) {
+            setSize(1920,1080);
+            if (containsEdit) {
+                panelManager.remove(edit);
+            }
+            edit = new EditPanel(this,select.getFile());
+            panelManager.add(edit,EDITPANEL);
+        }
+        else if (targetPanel.equals("level")) {
+            setSize(1200,900);
+            if (containsLevel) {
+                panelManager.remove(level);
+            }
+            level = new LevelPanel(this,select.getFile());
+            panelManager.add(level,LEVELPANEL);
+        }
+        else {
+            setSize(1200, 900);
+        }
         CardLayout cardLayout = (CardLayout) panelManager.getLayout();
         cardLayout.show(panelManager, targetPanel);
+
         activePanel = targetPanel;
         addNotify(); // Getting the focus of the current panel
     }
@@ -57,16 +82,27 @@ public class App extends JFrame {
                     edit.repaint();
                     break;
                 case LEVELPANEL:
-                    level.update();
+                    try {
+                        level.update();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
                     level.repaint();
                     break;
                 case SELECTPANEL:
+                    select.repaint();
                     break;
             }
         }
     }
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         System.setProperty("sun.java2d.opengl", "True");
         App game = new App();
+    }
+    public void start() {
+        myTimer.start();
+
     }
 }

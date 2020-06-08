@@ -78,4 +78,9 @@ public class Sprite<T> implements Serializable {
     }
     public void setVisible(boolean visible) { this.visible = visible; }
     public boolean getVisible() { return this.visible; }
+    //add from saved file
+    public static void put(Sprite sprite) {
+        spriteHashMap.put(sprite.locX*200000+sprite.locY,sprite);
+    }
+
 }

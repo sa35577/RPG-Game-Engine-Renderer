@@ -7,7 +7,7 @@ import java.awt.event.*;
 import java.io.IOException;
 import javax.swing.*;
 import javax.swing.Timer;
-public class Edit extends JFrame implements ActionListener {
+public class Edit {}/*extends JFrame implements ActionListener {
     Timer myTimer;
     EditPanel editor;
     public Edit() {
@@ -37,4 +37,4 @@ public class Edit extends JFrame implements ActionListener {
         }
     }
 
-}
+}*/

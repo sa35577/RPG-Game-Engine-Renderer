@@ -9,7 +9,9 @@ only be accessed if all coins are collected.
 import java.io.Serializable;
 
 public class PointTotal implements Serializable {
+    private static final long serialVersionUID = -7622257347763473994L;
     private int total; //total of all coins
+    private int cur;
     //constructor, default no points required to open
     public PointTotal() {
         this.total = 0;
@@ -24,4 +26,6 @@ public class PointTotal implements Serializable {
     public void increase(int val) { this.total += val; }
     //decrease point total (deleted coin, decreased coin value)
     public void decrease(int val) { this.total -= val; }
+    public void setCur(int cur) { this.cur = cur; }
+    public int getCur() { return this.cur; }
 }
