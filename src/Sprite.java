@@ -15,12 +15,12 @@ import java.util.*;
 public class Sprite<T> implements Serializable {
     private static final long serialVersionUID = 2552520455099101002L; //long for serialization id (writing object to text file)
     private static HashMap<Integer,Sprite> spriteHashMap = new HashMap<>(); //static HashMap used for accessing sprites in O(1) time
-    protected int locX,locY; //the x and y coordinates of the sprite
-    protected int key; //the key value used in the hashmap
-    protected ImageIcon img; //image of sprite itself for drawing, stored as ImageIcon instead of image due to the Image class not being serializable
-    protected String id; //name of Sprite, stored in the program
-    protected T instance; //the generic instance, or specific type of sprite
-    protected Rectangle hitBox; //collision of the sprite is handled with the hit box rectangles
+    public int locX,locY; //the x and y coordinates of the sprite
+    public int key; //the key value used in the hashmap
+    public ImageIcon img; //image of sprite itself for drawing, stored as ImageIcon instead of image due to the Image class not being serializable
+    public String id; //name of Sprite, stored in the program
+    public T instance; //the generic instance, or specific type of sprite
+    public Rectangle hitBox; //collision of the sprite is handled with the hit box rectangles
     private boolean visible; //holds whether the sprite is currently visible
     //constructor
     public Sprite(String id, int x, int y, ImageIcon image) {
@@ -50,7 +50,7 @@ public class Sprite<T> implements Serializable {
     public String getId() {return this.id;}
     public static HashMap<Integer,Sprite> getSpriteHashMap() {return spriteHashMap; }
     //linking the Sprite object to the specific sprite object
-    protected void setInstance(T instance) {
+    public void setInstance(T instance) {
         this.instance = instance;
     }
     //method that clears all enemies and avatars (switching from top-down to platform, or vice versa)
