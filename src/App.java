@@ -108,8 +108,7 @@ public class App extends JFrame {
     }
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         //System.setProperty("sun.java2d.opengl", "True"); //used to make panel manager slightly faster (was advised by a friend to do this)
-        ImageIcon i = new ImageIcon("scroll.jpeg");
-        long serialVersionID = ObjectStreamClass.lookup(i.getClass()).getSerialVersionUID();
+        long serialVersionID = ObjectStreamClass.lookup(new Boolean(true).getClass()).getSerialVersionUID();
         System.out.println(serialVersionID);
         App game = new App();
 
@@ -118,4 +117,4 @@ public class App extends JFrame {
         myTimer.start();
     }
 }
-//-962022720109015502
+//-962022720109015502 --> ImageIcon
