@@ -5,6 +5,8 @@ Main Frame class that runs 3 panels with a card layout.
  */
 
 //importing packages
+import com.sun.xml.internal.ws.api.model.wsdl.WSDLOutput;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectStreamClass;
 
 public class App extends JFrame {
     // string constants
@@ -104,10 +107,15 @@ public class App extends JFrame {
         }
     }
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        System.setProperty("sun.java2d.opengl", "True"); //used to make panel manager slightly faster (was advised by a friend to do this)
+        //System.setProperty("sun.java2d.opengl", "True"); //used to make panel manager slightly faster (was advised by a friend to do this)
+        ImageIcon i = new ImageIcon("scroll.jpeg");
+        long serialVersionID = ObjectStreamClass.lookup(i.getClass()).getSerialVersionUID();
+        System.out.println(serialVersionID);
         App game = new App();
+
     }
     public void start() {
         myTimer.start();
     }
 }
+//-962022720109015502
